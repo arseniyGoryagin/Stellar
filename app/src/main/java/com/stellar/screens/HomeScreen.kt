@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -37,15 +38,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.stellar.R
+import com.stellar.components.items.BigItemCard
 import com.stellar.ui.theme.Blue51
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.HomeViewModel
 
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(viewmodel : HomeViewModel) {
 
 
     var selectedTab by remember {
@@ -82,7 +86,7 @@ fun HomeScreen() {
                 )
             }
             when(selectedTab){
-                0 -> HomeContent()
+                0 -> HomeContent(viewmodel)
                 1 -> CategoryContent()
             }
         }
@@ -109,7 +113,7 @@ fun Banner(){
 
             val imgModifier = Modifier
                 .fillMaxWidth()
-                .height(500.dp)
+                .height(150.dp)
                 .padding(start = 16.dp, end = 16.dp)
                 .clip(
                     RoundedCornerShape(16.dp)
@@ -152,41 +156,10 @@ fun Banner(){
 
 
 @Composable
-fun HomeContent(){
-    
-    /*LazyColumn(
-
-        modifier = Modifier.padding(top = 16.dp)
-
-    )
-    {
-        Banner()
-        Row(
-
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
+fun HomeContent(viewmodel: HomeViewModel){
 
 
-        ){
-            Text(
-                text = "New Arrivals",
-                modifier = Modifier.padding(16.dp),
-                fontSize = 20.sp
-            )
-            Text(
-                text = "See All",
-                modifier = Modifier.padding(16.dp),
-                fontSize = 16.sp,
-                color = PurpleFont
-            )
-
-        }
-
-    }*/
-
-    LazyColumn {
+    LazyColumn(modifier = Modifier.padding(top = 20.dp)) {
         item {
             Banner()
         }
@@ -211,6 +184,12 @@ fun HomeContent(){
                 )
 
             }
+        }
+        items(viewmodel.newArivals){ item->
+            BigItemCard(imgSrc = R.drawable.belts,
+                itemName = item.itemName,
+                itemSeller = item.itemSeller,
+                itemPrice = item.itemPrice.toString())
         }
     }
 }

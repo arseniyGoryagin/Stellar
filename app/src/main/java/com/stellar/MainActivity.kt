@@ -51,6 +51,9 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+//import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -82,8 +85,13 @@ import com.stellar.screens.SignInScreen
 import com.stellar.screens.WelcomeScreen
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.HomeViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,21 +113,19 @@ class MainActivity : ComponentActivity() {
 fun MyApp(){
 
     val authenticated by remember { mutableStateOf(true)}
-
-
     val navController = rememberNavController()
-
     // moved up
     var selectedItem by remember { mutableIntStateOf(NavItems.HOME_ITEM) }
-
-
     // get the current route and observer as state
     val navControllerBackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = navControllerBackEntry?.destination?.route
 
+    //val homeViewModel : HomeViewModel = hiltViewModel()
+
 
 
     StellarTheme {
+
 
 
         Scaffold(
@@ -130,10 +136,7 @@ fun MyApp(){
                 val navigationItems = listOf("Home", "My Order", "Favorite", "My Profile")
 
                 NavigationBar(
-
                     containerColor = Color.White,
-
-
                 ) {
                     navigationItems.forEachIndexed() { index, item ->
                         NavigationBarItem(
@@ -231,7 +234,7 @@ fun MyApp(){
             NavHost(modifier = Modifier.padding(innerPadding),  navController = navController, startDestination = startDestination){
 
                 composable("Home"){
-                    HomeScreen()
+                    //HomeScreen(homeViewModel)
                 }
                 composable("Favorite"){
                     FavoriteScreen()

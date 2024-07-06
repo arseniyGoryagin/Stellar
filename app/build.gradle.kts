@@ -1,11 +1,18 @@
+
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.dagger.hilt)
+    id("kotlin-kapt")
 }
 
 android {
     namespace = "com.stellar"
     compileSdk = 34
+
 
     defaultConfig {
         applicationId = "com.stellar"
@@ -33,9 +40,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     buildFeatures {
         compose = true
     }
@@ -47,13 +51,21 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
+
 dependencies {
-
-
-
-    implementation("androidx.navigation:navigation-compose:2.5.3")
+    implementation(libs.dagger.hilt)
+    kapt(libs.dagger.hilt.compiler)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
