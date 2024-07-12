@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.stellar.components.Buttons.BackButton
 import com.stellar.components.Buttons.NotificationButton
+import com.stellar.components.Buttons.SettingsButton
+import com.stellar.screens.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +39,9 @@ fun NotificationsTopBar(navController : NavController){
             BackButton(navController = navController)
         },
         actions={
-            NotificationButton(navController)
+            SettingsButton {
+                navController.navigate("Settings")
+            }
         }
     )
 

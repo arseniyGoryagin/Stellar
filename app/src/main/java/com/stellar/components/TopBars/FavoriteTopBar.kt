@@ -33,7 +33,7 @@ fun FavoriteTopBar(navController : NavController){
 
         ),
         title= {
-            Text(text = "Favorite")
+            Text(text = "My Favorite")
         },
         navigationIcon = {
         },

@@ -10,6 +10,7 @@ lifecycleRuntimeKtx = "2.8.2"
 activityCompose = "1.8.0"
 composeBom = "2024.04.01"
 navigationCompose = "2.7.7"
+hiltCompose = "1.20"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,11 +32,15 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 dagger-hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "daggerHilt" }
 dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "daggerHilt" }
 
+hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version = "hiltCompose" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 dagger-hilt = {id = "com.google.dagger.hilt.android", version.ref = "daggerHilt"}
+
+
 
 
 

@@ -1,91 +1,65 @@
 package com.stellar
 
 import android.os.Bundle
-import android.widget.ImageButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-//import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+//import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.stellar.components.Buttons.BackButton
-import com.stellar.components.Buttons.MapButton
 import com.stellar.constants.NavItems
 import com.stellar.screens.FavoriteScreen
-import com.stellar.screens.HomeScreen
-import com.stellar.screens.MainScreen
+import com.stellar.screens.HomeScreen.HomeScreen
 import com.stellar.screens.MyOrderScreen
 import com.stellar.screens.MyProfileScreen
 import com.stellar.screens.NotificationsScreen
-import com.stellar.screens.SearchScreen
+import com.stellar.screens.SearchScreen.SearchScreen
 import com.stellar.ui.theme.StellarTheme
-import com.stellar.components.Buttons.NotificationButton
-import com.stellar.components.Buttons.ProfilePictureButton
-import com.stellar.components.Buttons.SearchButton
-import com.stellar.components.Input.SearchBar
 import com.stellar.components.TopBars.FavoriteTopBar
 import com.stellar.components.TopBars.HomeTopBar
 import com.stellar.components.TopBars.NotificationsTopBar
 import com.stellar.components.TopBars.OrderTopBar
 import com.stellar.components.TopBars.ProfileTopBar
 import com.stellar.components.TopBars.SearchTopBar
+import com.stellar.components.TopBars.SettingsTopBar
 import com.stellar.screens.CreateAccountScreen
+import com.stellar.screens.FilterModalScreen
+import com.stellar.screens.SettingsScreen
 import com.stellar.screens.SignInScreen
 import com.stellar.screens.WelcomeScreen
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.FavoriteViewModel
 import com.stellar.viewmodels.HomeViewModel
+import com.stellar.viewmodels.SearchViewModel
+import com.stellar.viewmodels.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -120,16 +94,24 @@ fun MyApp(){
     val navControllerBackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = navControllerBackEntry?.destination?.route
 
-    //val homeViewModel : HomeViewModel = hiltViewModel()
-
+    // view models
+    val homeViewModel : HomeViewModel = hiltViewModel()
+    val userViewModel : UserViewModel = hiltViewModel()
+    val searchViewModel: SearchViewModel = hiltViewModel()
+    val favoriteViewModel : FavoriteViewModel = hiltViewModel()
 
 
     StellarTheme {
 
-
+        var isFilter by remember {
+            mutableStateOf(false)
+        }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+
+            //////////////////////////////////////////
+
             bottomBar = {
                 if(authenticated){
 
@@ -194,6 +176,10 @@ fun MyApp(){
                     }
                 }
             } },
+
+            //////////////////////////////
+
+
             topBar={if(authenticated){
 
                 val searchExtended by remember {mutableIntStateOf(0)}
@@ -203,7 +189,7 @@ fun MyApp(){
 
                 if(currentScreen != null) {
                     if (currentScreen == "Home") {
-                        HomeTopBar(navController = navController)
+                        HomeTopBar(navController, userViewModel)
                     }
                     if (currentScreen == "My Profile") {
                         ProfileTopBar(navController = navController)
@@ -218,26 +204,44 @@ fun MyApp(){
                         NotificationsTopBar(navController = navController)
                     }
                     if (currentScreen == "Search") {
-                        SearchTopBar(navController = navController)
+                        SearchTopBar(navController = navController, searchViewModel){
+                            isFilter = true
+
+                        }
+                    }
+                    if (currentScreen == "Settings") {
+                        SettingsTopBar(navController = navController)
                     }
                 }
 
 
             }}
-        ) {
+        )
+
+
+        /////////////////////////////////////
+        {
             innerPadding ->
+
+
+
 
 
             val startDestination = if(authenticated){"Home"}else{"Welcome"}
 
 
-            NavHost(modifier = Modifier.padding(innerPadding),  navController = navController, startDestination = startDestination){
+
+
+            NavHost(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController,
+                startDestination = startDestination){
 
                 composable("Home"){
-                    //HomeScreen(homeViewModel)
+                    HomeScreen(homeViewModel, userViewModel)
                 }
                 composable("Favorite"){
-                    FavoriteScreen()
+                    FavoriteScreen(favoriteViewModel)
                 }
                 composable("My Order"){
                     MyOrderScreen()
@@ -249,7 +253,7 @@ fun MyApp(){
                     NotificationsScreen()
                 }
                 composable("Search"){
-                    SearchScreen()
+                    SearchScreen(searchViewModel)
                 }
                 composable("Welcome"){
                     WelcomeScreen(navController)
@@ -260,7 +264,24 @@ fun MyApp(){
                 composable("Sign In"){
                     SignInScreen(navController)
                 }
+                composable("Settings"){
+                    SettingsScreen()
+                }
             }
+
+
+            if(isFilter){
+                FilterModalScreen(
+                    currentPriceRange = searchViewModel.searchFilter.price_min .. searchViewModel.searchFilter.price_max,
+                    onDismis = {
+                        searchViewModel.updatePriceRange(it)
+                        isFilter = false
+                    }
+                )
+            }
+
+
+
         }
 
 
@@ -269,6 +290,7 @@ fun MyApp(){
 
 
 }
+
 
 /*
 

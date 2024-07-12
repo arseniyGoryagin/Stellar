@@ -27,10 +27,21 @@ import com.stellar.components.Buttons.ProfilePictureButton
 import com.stellar.components.Buttons.SearchButton
 import com.stellar.components.Input.SearchBar
 import com.stellar.constants.NavItems
+import com.stellar.viewmodels.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(navController : NavController){
+fun HomeTopBar(navController : NavController, userViewModel: UserViewModel){
+
+
+
+    val name = userViewModel.userData.value?.name
+
+
+    // TODO
+    //val profilePicture = userViewModel.userData.value?.profilePhoto
+
+
 
 
     TopAppBar(
@@ -42,7 +53,7 @@ fun HomeTopBar(navController : NavController){
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Center
                     ){
-                        Text("Hi! User1234",
+                        Text(text = "Hi! " + if(name != null){name}else{""},
                             fontSize = 20.sp)
                         Text("Let's go shopping ",
                             fontSize = 14.sp)
