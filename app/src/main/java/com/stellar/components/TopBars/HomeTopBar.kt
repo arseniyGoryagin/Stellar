@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.stellar.components.Buttons.BackButton
 import com.stellar.components.Buttons.MapButton
@@ -31,11 +32,11 @@ import com.stellar.viewmodels.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(navController : NavController, userViewModel: UserViewModel){
+fun HomeTopBar(navController : NavController, userViewModel: UserViewModel = hiltViewModel()){
 
 
 
-    val name = userViewModel.userData.value?.name
+    val name = "William"
 
 
     // TODO
@@ -60,11 +61,11 @@ fun HomeTopBar(navController : NavController, userViewModel: UserViewModel){
                     }
         },
         navigationIcon = {
-                    ProfilePictureButton(){navController.navigate("My Profile")}
+            ProfilePictureButton(){navController.navigate("My Profile")}
         },
         actions={
-                    SearchButton(navController)
-                    NotificationButton(navController)
+            SearchButton(navController)
+            NotificationButton(navController)
         }
     )
 

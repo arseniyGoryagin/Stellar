@@ -71,7 +71,8 @@ fun SignInScreen(navController: NavController){
             )},
             visibleText = true,
             trailingIcon = {},
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp))
+            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+            onValueChange = {})
 
         TextInput(name = "Password",
             placeholder = "Enter your password",
@@ -89,7 +90,8 @@ fun SignInScreen(navController: NavController){
 
 
             },
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp))
+            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+            onValueChange = {})
 
 
         Button(

@@ -11,11 +11,11 @@ import androidx.navigation.NavController
 fun SearchButton(navController: NavController){
     IconButton(
         onClick = {
-            navController.navigate("Search")
+            navController.navigate("Search/${null}")
         }) {
         Icon(
             Icons.Outlined.Search,
-            contentDescription = "Search"
+            contentDescription = null
         )
     }
 }

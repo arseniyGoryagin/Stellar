@@ -21,12 +21,11 @@ import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 
 @Composable
-fun TextInput(name : String, placeholder :String, modifier: Modifier, icon : @Composable () -> Unit, trailingIcon : @Composable () -> Unit, visibleText : Boolean){
+fun TextInput(name : String, placeholder :String, modifier: Modifier, icon : @Composable () -> Unit, trailingIcon : @Composable () -> Unit, onValueChange : (String) -> Unit, visibleText : Boolean){
 
     var inputValue by remember {
         mutableStateOf("")
     }
-
 
 
     Column(modifier = modifier) {
@@ -47,7 +46,10 @@ fun TextInput(name : String, placeholder :String, modifier: Modifier, icon : @Co
                 focusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
                 unfocusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
             ),
-            onValueChange = {inputValue = it},
+            onValueChange = {
+                inputValue = it
+                onValueChange(it)
+                            },
             shape = RoundedCornerShape(20.dp),
             leadingIcon = icon,
             trailingIcon = trailingIcon,

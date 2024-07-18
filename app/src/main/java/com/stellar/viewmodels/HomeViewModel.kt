@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.stellar.data.BaseProduct
 import com.stellar.data.Category
 import com.stellar.data.Product
 import com.stellar.data.Repository
@@ -65,6 +66,19 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
         catch(e : IOException){
             categoriesState = CategoriesState.Error
         }
+    }
+
+    fun addFavorite(id : Int){
+        val updatedProducts : List<Product> = (newArrivalsState as NewArrivalsState.Success).products.map {
+            if(id == it.id){
+                it.favorite = true
+            }
+            it
+        }
+
+        newArrivalsState = NewArrivalsState.Success(updatedProducts)
+
+        repository.addFavorite(id)
     }
 
 

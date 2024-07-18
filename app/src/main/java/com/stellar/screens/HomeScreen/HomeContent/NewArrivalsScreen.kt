@@ -16,69 +16,24 @@ import com.stellar.components.items.BigItemCard
 import com.stellar.data.Product
 
 @Composable
-fun NewArrivals(products : List<Product>) {
+fun NewArrivals(products : List<Product>, onProductClick : (Int) -> Unit, onFavorite : (Int) -> Unit, onSeeAll : () -> Unit) {
 
 
 
     ItemColumn(
-        modifier = Modifier.padding(top = 20.dp),
+        modifier = Modifier.padding(top = 20.dp, start = 16.dp, end = 16.dp),
         products = products,
-        onFavorite = { /*TODO*/ },
-        onClick ={}, header = {
-
+        onClick = onProductClick,
+        onFavorite = onFavorite,
+        header = {
             Column {
                 Banner()
                 ArrivalsRow(
-                    onSeeAll = {}
+                    onSeeAll = {onSeeAll()}
                 )
             }
 
     })
-
-    /*
-    LazyColumn(modifier = Modifier.padding(top = 20.dp)) {
-        item {
-            Banner()
-        }
-        item {
-            ArrivalsRow(
-                onSeeAll = {}
-            )
-        }
-
-
-
-
-        items(products.chunked(2)) { itemPair ->
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                itemPair.forEach { item ->
-
-                    // TODO fix this
-                    val imgSrc = item.images[0].replace("\"", "").replace("[", "")
-                    println("Image src == \n\n" + imgSrc)
-
-                    BigItemCard(
-                        itemName = item.title,
-                        itemSeller = item.category.name,
-                        itemPrice = item.price.toString(),
-                        isFavorite = false,
-                        onFavorite = {},
-                        onClick = {},
-                        imgSrc = imgSrc,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-        }
-
-    }*/
 }
 
 

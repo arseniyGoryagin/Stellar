@@ -14,6 +14,7 @@ import com.stellar.ui.theme.PurpleFont
 
 @Composable
 fun ArrivalsRow(onSeeAll : () -> Unit){
+
     Row(
 
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -29,7 +30,7 @@ fun ArrivalsRow(onSeeAll : () -> Unit){
         Text(
             text = "See All",
             modifier = Modifier.padding(16.dp)
-                .clickable{onSeeAll},
+                .clickable{onSeeAll()},
             fontSize = 16.sp,
             color = PurpleFont
         )

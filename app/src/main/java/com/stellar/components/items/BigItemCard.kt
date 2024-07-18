@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -32,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,12 +52,8 @@ fun BigItemCard(
     favorite: Boolean = false,
     onFavorite: () -> Unit,
     onClick: () -> Unit,
-    isFavorite: Boolean,
     imgSrc: String,
 ){
-
-
-
 
 
 
@@ -70,11 +68,12 @@ fun BigItemCard(
 
     ) {
 
-        ImageBox(imgSrc = imgSrc, onFavorite = onFavorite)
+        ImageBox(imgSrc = imgSrc, onFavorite = onFavorite, favorite)
         Text(
             text = itemName,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
             )
         Text(
             text = itemSeller,
@@ -95,10 +94,10 @@ fun BigItemCard(
 
 
 @Composable
-fun ImageBox(imgSrc : String,onFavorite: () -> Unit){
+fun ImageBox(imgSrc : String,onFavorite: () -> Unit, intialFavorite: Boolean){
 
     var favorite by remember {
-        mutableStateOf(false)
+        mutableStateOf(intialFavorite)
     }
 
     Box(
@@ -120,13 +119,14 @@ fun ImageBox(imgSrc : String,onFavorite: () -> Unit){
                     modifier = Modifier.fillMaxSize()
                 )},
                 loading = {
-                    Image(
-                        painter = painterResource(id = R.drawable.loading),
-                        contentDescription = null,
-                        contentScale = ContentScale.FillBounds,
-                        modifier = Modifier.fillMaxSize()
+                    Box(
 
-                    )}
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             )
         IconButton(
             onClick = {
@@ -140,22 +140,8 @@ fun ImageBox(imgSrc : String,onFavorite: () -> Unit){
                 .height(40.dp)
                 .width(40.dp)
         ) {
-
-
-
-
-            if(favorite){Color.Red}else{Color.White}
-
             Icon(
                 if(favorite){Icons.Filled.Favorite}else{Icons.Outlined.FavoriteBorder},
-                contentDescription = "Favorite",
-                tint = if(favorite){Color.Red}else{Color.White},
-            )
-
-
-
-            Icon(
-                Icons.Outlined.FavoriteBorder,
                 contentDescription = "Favorite",
                 tint = if(favorite){Color.Red}else{Color.White},
             )

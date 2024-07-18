@@ -5,5 +5,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun ErrorScreen(message : String){
-    Text("Error loading" + message)
+    Text(message)
 }

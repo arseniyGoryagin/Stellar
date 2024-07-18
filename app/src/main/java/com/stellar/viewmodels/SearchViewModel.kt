@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.network.HttpException
 import com.stellar.data.Product
 import com.stellar.data.Repository
 import com.stellar.data.SearchFilter
@@ -24,6 +25,16 @@ sealed interface Searches{
 }
 
 
+sealed interface PopularSearches{
+
+    data class Success( val puularSearchProducts : List<Product>) : PopularSearches
+    object Error : PopularSearches
+    object Loading : PopularSearches
+
+}
+
+
+
 
 
 
@@ -38,10 +49,15 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
     var searchFilter : SearchFilter by mutableStateOf(SearchFilter())
         private set
 
+    var popularSearches : PopularSearches by mutableStateOf(PopularSearches.Loading)
+
+    var latestSearches : List<String> by mutableStateOf(emptyList())
+
     var searchActive by mutableStateOf(false)
         private set
 
-    private var lastSearch : String = ""
+    var currentSearch by mutableStateOf("")
+        private set
 
 
 
@@ -51,16 +67,32 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
                     searchResults = Searches.Loading
                     val products = repository.getProducts(title, 10, filter = searchFilter)
                     searchResults = Searches.Success(products)
-                    lastSearch = title
-
+                    //currentSearch = title
+                    println("Search title\n" +title)
                 }catch (e : IOException){
                     searchResults = Searches.Error
                 }
         }
     }
 
+
+    fun getPopularSearches(){
+         viewModelScope.launch {
+             try {
+                 popularSearches = PopularSearches.Loading
+                 val searches = repository.getPopularSearches()
+                 popularSearches =  PopularSearches.Success(searches)
+             }catch (e : HttpException){
+                 popularSearches = PopularSearches.Error
+
+             }
+         }
+    }
+
     init {
         getProducts("")
+        getPopularSearches()
+        getLatestSearches()
     }
 
 
@@ -69,9 +101,16 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
     }
 
 
-
-    fun getLatestSearches() : List<String>{
-        return listOf("Helo", "Byr", "Hie")
+    private fun getLatestSearches(){
+        latestSearches = repository.getLatestSearches()
+    }
+    fun removeLatestSearch(search : String){
+        repository.removeSearch(search)
+        getLatestSearches()
+    }
+    fun saveSearch(search: String) {
+        repository.addSearch(search)
+        getLatestSearches()
     }
 
     fun updatePriceRange(range: ClosedFloatingPointRange<Float>) {
@@ -79,6 +118,7 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
             price_min = range.start,
             price_max = range.endInclusive
         )
-        getProducts(lastSearch)
+        getProducts(currentSearch)
     }
+
 }

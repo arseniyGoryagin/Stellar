@@ -24,8 +24,8 @@ import com.stellar.data.Product
 @Composable
 fun ItemColumn(products : List<Product>,
                header: @Composable () -> Unit = {} ,
-               onFavorite : () -> Unit,
-               onClick : () -> Unit,
+               onFavorite : (Int) -> Unit,
+               onClick : (Int) -> Unit,
                modifier: Modifier = Modifier){
 
 
@@ -48,12 +48,12 @@ fun ItemColumn(products : List<Product>,
             val imgSrc = item.images[0].replace("\"", "").replace("[", "")
 
             BigItemCard(
+                favorite = item.favorite,
                 itemName = item.title,
                 itemSeller = item.category.name,
                 itemPrice = item.price.toString(),
-                isFavorite = false,
-                onFavorite = onFavorite,
-                onClick = onClick,
+                onFavorite = {onFavorite(item.id)},
+                onClick = { onClick(item.id)},
                 imgSrc = imgSrc,
                 modifier = Modifier.fillMaxWidth()
             )

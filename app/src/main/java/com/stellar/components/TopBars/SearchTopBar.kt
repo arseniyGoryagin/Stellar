@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.stellar.R
 import com.stellar.components.Buttons.BackButton
@@ -44,9 +45,9 @@ import com.stellar.viewmodels.SearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchTopBar(navController : NavController, viewModel: SearchViewModel, onFilter : () -> Unit){
+fun SearchToopBar(navController : NavController, viewModel: SearchViewModel = hiltViewModel(), onFilter : () -> Unit){
 
-
+    val currentSearch = viewModel.currentSearch
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -56,18 +57,25 @@ fun SearchTopBar(navController : NavController, viewModel: SearchViewModel, onFi
             SearchInput(
                 placeholder = "Cheap Bags",
                 onFilter = onFilter,
+                value = currentSearch,
                 onValueChanged =
                 { search ->
-                viewModel.getProducts(search)
-            },
+                    navController.navigate("Search/${search}")
+                },
                 onFocusChanged = {it
                     viewModel.changeSearchActive(it.isFocused)
+                },
+                onSearch = { search ->
+                    navController.navigate("Search/${search}")
+                    println("Searching --- \n" + search)
+                    viewModel.saveSearch(search)
                 }
 
                 )
         },
         navigationIcon = {
             BackButton(navController = navController)
+            viewModel.getProducts("")
         },
         actions={
             NotificationButton(navController)
@@ -77,12 +85,11 @@ fun SearchTopBar(navController : NavController, viewModel: SearchViewModel, onFi
 
 
 @Composable
-fun SearchInput(placeholder :String, onValueChanged : (search : String) -> Unit, onFilter: () -> Unit, onFocusChanged : (FocusState) -> Unit){
+fun SearchInput(placeholder :String, value : String, onValueChanged : (search : String) -> Unit, onFilter: () -> Unit, onFocusChanged : (FocusState) -> Unit, onSearch : (String) -> Unit){
 
     var inputValue by remember {
-        mutableStateOf("")
+        mutableStateOf(value)
     }
-
 
 
         OutlinedTextField(
@@ -111,7 +118,11 @@ fun SearchInput(placeholder :String, onValueChanged : (search : String) -> Unit,
                 onValueChanged(it)
                             },
             shape = RoundedCornerShape(20.dp),
-            leadingIcon = {Icon(Icons.Outlined.Search, contentDescription = "Search")},
+            leadingIcon = {
+                IconButton(onClick = { onSearch(inputValue)}) {
+                    Icon(Icons.Outlined.Search, contentDescription = "Search")
+                }
+            },
             trailingIcon ={
 
                 IconButton(onClick = { onFilter()}) {
