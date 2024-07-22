@@ -43,12 +43,47 @@ class FavoritesViewModel @Inject constructor(private val repository: Repository)
                 favoriteProductsState = FavoriteProductsState.Loading
                 val products = repository.getFavoriteProducts()
                 favoriteProductsState = FavoriteProductsState.Success(products)
-            } catch (e: IOException) {
+            } catch (e: Exception) {
+                when(e){
+                    is retrofit2.HttpException ->{
+                        val repsonseBody = e.response()?.errorBody()?.string()
+                        println("Error ${e.message()}\n${repsonseBody}")
+                    }
+                }
                 favoriteProductsState = FavoriteProductsState.Error
             }
         }
     }
 
+
+    fun addFavorite(id : Int){
+        val updatedProducts : List<Product> = (favoriteProductsState  as FavoriteProductsState.Success).products.map {
+            if(id == it.id){
+                it.favorite = true
+            }
+            it
+        }
+
+        favoriteProductsState = FavoriteProductsState.Success(updatedProducts)
+
+        repository.addFavorite(id)
+    }
+
+    fun removeFavorite(id : Int){
+
+        val updatedProducts : List<Product> = (favoriteProductsState  as FavoriteProductsState.Success).products.map {
+            if(id == it.id){
+                it.favorite = true
+            }
+            it
+        }
+
+
+        favoriteProductsState  = FavoriteProductsState.Success(updatedProducts)
+
+        repository.removeFavorite(id)
+
+    }
 
 
     init {

@@ -1,6 +1,8 @@
 package com.stellar.screens.HomeScreen
 
 import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -59,8 +62,11 @@ import com.stellar.viewmodels.UserViewModel
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun HomeScreen(navController: NavController,  viewmodel: HomeViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel()) {
+fun HomeScreen(navController: NavController,  viewmodel: HomeViewModel, userViewModel: UserViewModel) {
 
+    SideEffect {
+        Log.d("RecompositionTracker", "TrackableComposable recomposed")
+    }
 
     var selectedTab by remember {
         mutableIntStateOf(0)
@@ -68,12 +74,15 @@ fun HomeScreen(navController: NavController,  viewmodel: HomeViewModel = hiltVie
 
 
     Scaffold(
-        topBar = { HomeTopBar(navController = navController) },
+        topBar = {
+            HomeTopBar(navController = navController, userViewModel)
+
+                 },
         content = { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding)){
 
 
-                    val tabs = listOf("Home", "Category")
+                    val tabs = remember { listOf("Home", "Category") }
 
                     Column(
 
@@ -103,9 +112,11 @@ fun HomeScreen(navController: NavController,  viewmodel: HomeViewModel = hiltVie
 
                             }
                         }
-                        when(selectedTab){
-                            0 -> HomeContent(viewmodel, navController)
-                            1 -> CategoryContent(viewmodel)
+                        AnimatedContent(targetState = selectedTab) { tabIndex ->
+                            when(tabIndex){
+                                0 -> HomeContent(viewmodel, navController)
+                                1 -> CategoryContent(viewmodel)
+                            }
                         }
                     }
 

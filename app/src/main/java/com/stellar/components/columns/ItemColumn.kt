@@ -25,6 +25,7 @@ import com.stellar.data.Product
 fun ItemColumn(products : List<Product>,
                header: @Composable () -> Unit = {} ,
                onFavorite : (Int) -> Unit,
+               onDeFavorite : (Int) -> Unit,
                onClick : (Int) -> Unit,
                modifier: Modifier = Modifier){
 
@@ -54,6 +55,7 @@ fun ItemColumn(products : List<Product>,
                 itemPrice = item.price.toString(),
                 onFavorite = {onFavorite(item.id)},
                 onClick = { onClick(item.id)},
+                onDeFavorite ={ onDeFavorite(item.id)},
                 imgSrc = imgSrc,
                 modifier = Modifier.fillMaxWidth()
             )

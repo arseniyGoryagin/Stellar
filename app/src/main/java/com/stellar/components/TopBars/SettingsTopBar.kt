@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.stellar.components.Buttons.BackButton
 import com.stellar.components.Buttons.NotificationButton
+import com.stellar.ui.theme.Grey241
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,7 +23,7 @@ fun SettingsTopBar(navController : NavController){
 
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.White
+            containerColor = Grey241
 
         ),
         title= {

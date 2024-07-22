@@ -65,7 +65,12 @@ kapt {
 
 dependencies {
 
+    // room
+    implementation ("androidx.room:room-runtime:2.5.1")
+    kapt ("androidx.room:room-compiler:2.5.1") // For Kotlin use kapt
+
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.core:core-splashscreen:1.0.0")
 
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -83,10 +88,9 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
+    implementation("io.coil-kt:coil:2.7.0")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
-
-    // Coil
-    implementation("io.coil-kt:coil-compose:2.4.0")
 
     implementation(libs.dagger.hilt)
     kapt(libs.dagger.hilt.compiler)

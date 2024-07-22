@@ -22,6 +22,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +39,7 @@ import com.stellar.ui.theme.Blue51
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.UserViewModel
 
 
 @SuppressLint("SuspiciousIndentation")
@@ -119,8 +121,12 @@ fun Pager(){
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WelcomeScreen (navController: NavController){
+fun WelcomeScreen (navController: NavController, userViewModel: UserViewModel){
 
+
+    LaunchedEffect(Unit) {
+        userViewModel.resetState()
+    }
 
 
     Column(

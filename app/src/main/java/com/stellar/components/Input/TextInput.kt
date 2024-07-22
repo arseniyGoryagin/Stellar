@@ -13,23 +13,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 
 @Composable
-fun TextInput(name : String, placeholder :String, modifier: Modifier, icon : @Composable () -> Unit, trailingIcon : @Composable () -> Unit, onValueChange : (String) -> Unit, visibleText : Boolean){
+fun TextInput(name : String, startValue : String = "", placeholder :String = "", modifier: Modifier = Modifier, icon : @Composable () -> Unit, trailingIcon : @Composable () -> Unit, onValueChange : (String) -> Unit, visibleText : Boolean){
 
     var inputValue by remember {
-        mutableStateOf("")
+        mutableStateOf(startValue)
     }
 
 
     Column(modifier = modifier) {
-        Text(name, fontSize = 16.sp)
+        Text(name,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = inputValue,
@@ -59,3 +64,4 @@ fun TextInput(name : String, placeholder :String, modifier: Modifier, icon : @Co
     }
 
 }
+

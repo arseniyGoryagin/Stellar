@@ -51,7 +51,6 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
             try {
                 val products = repository.getNewArrivals()
                 newArrivalsState = NewArrivalsState.Success(products)
-                println(products[0].images[0])
             }
             catch(e : IOException){
                 newArrivalsState = NewArrivalsState.Error
@@ -80,6 +79,23 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
 
         repository.addFavorite(id)
     }
+
+    fun removeFavorite(id : Int){
+
+        val updatedProducts : List<Product> = (newArrivalsState as NewArrivalsState.Success).products.map {
+            if(id == it.id){
+                it.favorite = false
+            }
+            it
+        }
+
+
+        newArrivalsState = NewArrivalsState.Success(updatedProducts)
+
+        repository.removeFavorite(id)
+
+    }
+
 
 
 

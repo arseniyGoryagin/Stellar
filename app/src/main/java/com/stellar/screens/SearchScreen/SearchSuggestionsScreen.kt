@@ -42,6 +42,7 @@ fun SearchSuggestionsContent(viewModel: SearchViewModel, navController: NavContr
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(top = 16.dp)
+
             ) {
 
                 item {
@@ -95,6 +96,7 @@ fun SearchSuggestionsContent(viewModel: SearchViewModel, navController: NavContr
                                 Modifier
                                     .fillMaxWidth()
                                     .height(100.dp)
+                                    .padding(top = 16.dp)
                             )
                         }
                     }

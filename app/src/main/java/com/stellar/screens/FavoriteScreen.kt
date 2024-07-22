@@ -52,7 +52,6 @@ import com.stellar.viewmodels.FavoritesViewModel
 fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController) {
 
 
-
     Scaffold(
         topBar = { FavoriteTopBar(navController = navController) },
         content = { innerPadding ->
@@ -66,7 +65,7 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                 )
 
                 var selectedButton by remember {
-                    mutableStateOf(0)
+                    mutableStateOf("All")
                 }
 
                 val favoriteProducts : FavoriteProductsState = viewModel.favoriteProductsState
@@ -90,21 +89,17 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                             .padding(top = 16.dp, bottom = 16.dp)
                     )
                     Row(
-
                         modifier = Modifier.padding(8.dp)
-
-
                     ) {
                         buttons.forEachIndexed(){ index, buttonName ->
-
                             Button(
                                 onClick = {
-                                    selectedButton = index
+                                    selectedButton = buttonName
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if(selectedButton == index){
+                                    containerColor = if(selectedButton == buttonName){
                                         PurpleFont}else{Color.White},
-                                    contentColor = if(selectedButton == index){
+                                    contentColor = if(selectedButton == buttonName){
                                         Color.White}else{
                                         Grey170},
                                 ),
@@ -116,7 +111,35 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                     }
 
                     when(favoriteProducts){
-                        is FavoriteProductsState.Success -> ItemColumn(products = favoriteProducts.products, onFavorite = { /*TODO*/ }, onClick = {})
+                        is FavoriteProductsState.Success ->
+                        {
+                            var  products = favoriteProducts.products
+
+                            when(selectedButton){
+                                "Cheapest" -> {
+                                    products = products.sortedBy {
+                                        it.price
+                                    }
+
+                                }
+                                "Most Popular" ->{
+                                    products = products.sortedBy {
+                                        // fake just emulating api doe not provide
+                                        it.description
+                                    }
+                                }
+                            }
+
+
+                            ItemColumn(products = products, onFavorite = {
+                            viewModel.addFavorite(it)
+                        },
+                            onClick = { id ->
+                                navController.navigate("Product/$id")
+                            },
+                            onDeFavorite = {
+                                viewModel.removeFavorite(it)
+                            })}
                         FavoriteProductsState.Error -> ErrorScreen(message = "Error loading favorite products")
                         FavoriteProductsState.Loading -> LoadingScreen()
                         else -> {}

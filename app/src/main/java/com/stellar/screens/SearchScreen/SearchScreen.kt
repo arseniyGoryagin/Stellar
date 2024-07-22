@@ -59,7 +59,6 @@ import kotlinx.coroutines.flow.filter
 fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navController: NavController, searchString : String?){
 
 
-
     var isActive by remember {
         if(searchString != null) {
             mutableStateOf(true)
@@ -69,12 +68,27 @@ fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navControll
     }
 
     searchString?.let {
-        LaunchedEffect(key1 = searchString) {
+        LaunchedEffect(Unit) {
             viewModel.getProducts(searchString)
         }
     }
 
-    println("Search strung + = " + searchString)
+
+    val onSearch = remember(viewModel){
+        { it : String ->
+            viewModel.saveSearch(it)
+            viewModel.getProducts(it)
+
+
+        }
+    }
+    val onValueChanged = remember(viewModel) {
+        { it : String ->
+            viewModel.getProducts(it)
+        }
+    }
+
+    println("Recompooooo")
 
 
 
@@ -86,18 +100,16 @@ fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navControll
                 onFocuse = {
                     if(it){isActive = true}
                 },
-                onSearch = {
-                    viewModel.saveSearch(it)
-                    viewModel.getProducts(it)
-                },
-                onValueChanged = {
-                    viewModel.getProducts(it)
-                },
+                onSearch = onSearch,
+                onValueChanged = onValueChanged,
                 searchString = searchString
                 )
         },
 
     content = {padding ->
+
+
+
         Box(modifier = Modifier.padding(padding)) {
             if (!isActive) {
                 SearchSuggestionsContent(viewModel, navController)
@@ -122,6 +134,10 @@ fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navControll
 }
 
 
+
+
+
+
 @Composable
 fun SearchResults(products : List<Product>, onItemClick :(Int) -> Unit){
     if (products.isEmpty()) {
@@ -136,10 +152,13 @@ fun SearchResults(products : List<Product>, onItemClick :(Int) -> Unit){
             )
         }
     } else {
-        ItemColumn(products = products, onFavorite = { /*TODO*/ }, onClick = onItemClick, modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp))
+        ItemColumn(products = products, onFavorite = { /*TODO*/ },
+            onClick = onItemClick,
+            onDeFavorite = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp))
     }
 
 }

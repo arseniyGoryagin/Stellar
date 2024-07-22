@@ -60,21 +60,30 @@ import com.stellar.components.TopBars.ProfileTopBar
 import com.stellar.components.TopBars.SettingsTopBar
 import com.stellar.components.screens.ErrorScreen
 import com.stellar.components.screens.LoadingScreen
-import com.stellar.data.AppNavGraph
 import com.stellar.screens.CartScreen
+import com.stellar.screens.ChangePasswordScreen
 import com.stellar.screens.CreateAccountScreen
 import com.stellar.screens.FavoriteScreen
 import com.stellar.screens.FilterModalScreen
+import com.stellar.screens.HelpScreen
+import com.stellar.screens.LanguageScreen
+import com.stellar.screens.LegalScreen
+import com.stellar.screens.NotificationsSettingsScreen
 import com.stellar.screens.ProductScreen
 import com.stellar.screens.SearchScreen.SearchSuggestionsContent
+import com.stellar.screens.SecurityScreen
 import com.stellar.screens.SettingsScreen
 import com.stellar.screens.SignInScreen
 import com.stellar.screens.WelcomeScreen
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.AuthState
 import com.stellar.viewmodels.CartViewModel
+import com.stellar.viewmodels.ChangePasswordViewModel
 import com.stellar.viewmodels.FavoritesViewModel
 import com.stellar.viewmodels.HomeViewModel
+import com.stellar.viewmodels.MyProfileViewModel
+import com.stellar.viewmodels.NotificationsViewModel
 import com.stellar.viewmodels.ProductViewModel
 import com.stellar.viewmodels.SearchViewModel
 import com.stellar.viewmodels.UserState
@@ -106,21 +115,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App (){
 
-
-    val PREFTAG = "PREFS"
-
-    // navigation
     val navController = rememberNavController()
-    val context = LocalContext.current
-    val prefs = context.getSharedPreferences(PREFTAG, Context.MODE_PRIVATE)
 
+    val userViewModel : UserViewModel = hiltViewModel()
 
-    val jwtToken = prefs.getString("JWT_TOKEN", null)
+    val userAuthState = userViewModel.authState
 
-    if(jwtToken == null){
-        WelcomeScaffold(navController = navController)
-    }else{
-        MainAppScaffold(navController = navController)
+    val startDestination = when(userAuthState){
+        AuthState.Authenticated -> "Home"
+        AuthState.NotAuthenticated -> "Welcome"
+    }
+
+    StellarTheme {
+        MainAppScaffold(startDestination = startDestination, navController)
     }
 
 }
@@ -129,21 +136,128 @@ fun App (){
 
 
 @Composable
-fun MainAppScaffold(navController: NavHostController){
+fun MainAppScaffold(startDestination : String, navController: NavHostController){
+
+
+
+    val homeViewModel: HomeViewModel = hiltViewModel()
+    val userViewModel: UserViewModel = hiltViewModel()
+    val cartViewModel: CartViewModel = hiltViewModel()
+    val changePasswordViewModel: ChangePasswordViewModel = hiltViewModel()
+    val myProfileViewModel: MyProfileViewModel = hiltViewModel()
+    val favoritesViewModel: FavoritesViewModel = hiltViewModel()
+    val productViewModel: ProductViewModel = hiltViewModel()
+    val searchViewModel: SearchViewModel = hiltViewModel()
+    val notificationsViewModel : NotificationsViewModel = hiltViewModel()
+
     Scaffold(
-        bottomBar = {BottomNavigationBar(navController = navController)},
-    content = { padding ->
-        AppNavGraph(navController = navController, startDestination = "Home", onFilter = {}, modifier = Modifier.padding(padding))
+        content = { padding ->
+            NavHost(
+                modifier = Modifier.padding(padding),
+                navController = navController,
+                startDestination = startDestination
+            ) {
+                composable(
+                    route = "Product/{itemId}",
+                    arguments = listOf(navArgument("itemId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    ProductScreen(
+                        navController = navController,
+                        viewmodel = productViewModel,
+                        productId = backStackEntry.arguments?.getInt("itemId")
+                    )
+                }
+
+                composable(
+                    route = "Search/{searchString}",
+                    arguments = listOf(navArgument("searchString") {
+                        type = NavType.StringType
+                        nullable = true
+                    })
+                ) { backStackEntry ->
+                    SearchScreen(
+                        navController = navController,
+                        searchString = backStackEntry.arguments?.getString("searchString"),
+                        viewModel = searchViewModel,
+                        onFilter = {}
+                    )
+                }
+
+                composable("Home") {
+                    HomeScreen(navController, homeViewModel, userViewModel)
+                }
+                composable("Favorite") {
+                    FavoriteScreen(favoritesViewModel, navController)
+                }
+                composable("My Order") {
+                    MyOrderScreen(navController)
+                }
+                composable("My Profile") {
+                    MyProfileScreen(navController, userViewModel, myProfileViewModel)
+                }
+                composable("Notifications") {
+                    NotificationsScreen(navController, notificationsViewModel)
+                }
+                composable("Welcome") {
+                    WelcomeScreen(navController, userViewModel)
+                }
+                composable("Create Account") {
+                    CreateAccountScreen(navController, userViewModel)
+                }
+                composable("Sign In") {
+                    SignInScreen(navController, userViewModel)
+                }
+                composable("Settings") {
+                    SettingsScreen(navController, userViewModel)
+                }
+                composable("Cart") {
+                    CartScreen(viewModel = cartViewModel, navController)
+                }
+                composable("Change Password") {
+                    ChangePasswordScreen(navController = navController, changePasswordViewModel)
+                }
+                composable("Notifications Settings") {
+                    NotificationsSettingsScreen(navController)
+                }
+                composable("Security Settings") {
+                    SecurityScreen(navController = navController)
+                }
+                composable("Language Settings") {
+                    LanguageScreen(navController)
+                }
+                composable("Legal and Polices") {
+                    LegalScreen(navController)
+                }
+                composable("Help and Support") {
+                    HelpScreen(navController)
+                }
+            }
+        },
+        bottomBar = {
+            BottomBarLogic(navController = navController)
         }
-        )
+    )
 }
 
 
-@Composable
-fun WelcomeScaffold(navController: NavHostController){
-    AppNavGraph(navController = navController, startDestination = "Welcome",) {
+@Composable 
+fun BottomBarLogic(navController: NavController){
+
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination?.route
+
+
+
+    val showBottomBar = currentDestination in listOf("Favorite", "Home", "My Order", "My Profile")
+    if (showBottomBar) {
+        BottomNavigationBar(navController = navController)
     }
 }
+    
+
+
+
 
 
 

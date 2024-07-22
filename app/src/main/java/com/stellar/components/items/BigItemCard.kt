@@ -51,6 +51,7 @@ fun BigItemCard(
     itemPrice: String,
     favorite: Boolean = false,
     onFavorite: () -> Unit,
+    onDeFavorite : ()-> Unit,
     onClick: () -> Unit,
     imgSrc: String,
 ){
@@ -68,7 +69,7 @@ fun BigItemCard(
 
     ) {
 
-        ImageBox(imgSrc = imgSrc, onFavorite = onFavorite, favorite)
+        ImageBox(imgSrc = imgSrc, onFavorite = onFavorite, initialFavorite = favorite, onDeFavorite = onDeFavorite)
         Text(
             text = itemName,
             fontSize = 16.sp,
@@ -94,10 +95,10 @@ fun BigItemCard(
 
 
 @Composable
-fun ImageBox(imgSrc : String,onFavorite: () -> Unit, intialFavorite: Boolean){
+fun ImageBox(imgSrc : String,onFavorite: () -> Unit, onDeFavorite : () -> Unit,  initialFavorite: Boolean){
 
     var favorite by remember {
-        mutableStateOf(intialFavorite)
+        mutableStateOf(initialFavorite)
     }
 
     Box(
@@ -130,8 +131,10 @@ fun ImageBox(imgSrc : String,onFavorite: () -> Unit, intialFavorite: Boolean){
             )
         IconButton(
             onClick = {
+                if(!favorite){
+                    onFavorite()
+                }else{onDeFavorite()}
                 favorite  = !favorite
-                onFavorite()
             },
             Modifier
                 .align(Alignment.TopEnd)

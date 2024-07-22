@@ -24,11 +24,13 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -37,12 +39,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.stellar.components.Input.TextInput
+import com.stellar.components.screens.ErrorScreen
 import com.stellar.components.screens.LoadingScreen
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.UserState
 import com.stellar.viewmodels.UserViewModel
 import org.jetbrains.annotations.Contract
+import java.lang.Error
 
 @Composable
 fun CreateAccountScreen(navController: NavController, viewModel: UserViewModel){
@@ -52,10 +56,16 @@ fun CreateAccountScreen(navController: NavController, viewModel: UserViewModel){
 
 
 
+    /*LaunchedEffect(Unit) {
+        viewModel.updateUserData()
+    }*/
+
+
+
     when(userState){
-        UserState.Error -> Error("Error logging in")
+        UserState.Error -> CreateAccountContent(viewModel = viewModel, "Error Creating an account")
         UserState.Loading -> LoadingScreen()
-        UserState.NonAuthenticated -> CreateAccountContent(viewModel = viewModel)
+        UserState.Idle -> CreateAccountContent(viewModel = viewModel, null)
         is UserState.Success -> {navController.navigate("Home")}
     }
 
@@ -66,7 +76,7 @@ fun CreateAccountScreen(navController: NavController, viewModel: UserViewModel){
 
 
 @Composable
-fun CreateAccountContent(viewModel: UserViewModel){
+fun CreateAccountContent(viewModel: UserViewModel, error: String? = null){
 
 
 
@@ -84,9 +94,17 @@ fun CreateAccountContent(viewModel: UserViewModel){
         mutableStateOf("")
     }
 
+    var error by remember {
+        mutableStateOf(error)
+    }
 
 
-    Column() {
+
+    Column(
+
+        horizontalAlignment = Alignment.CenterHorizontally
+
+    ) {
         Text("Create Account",
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
@@ -137,15 +155,22 @@ fun CreateAccountContent(viewModel: UserViewModel){
 
         Button(
             onClick = {
+                println(name)
                 viewModel.register(email, password, name)
             },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
             modifier = Modifier
                 .padding(top = 16.dp, start = 24.dp, end = 24.dp)
                 .fillMaxWidth()
-        )
+            )
         {
             Text("Create an Account", fontSize = 18.sp)
+        }
+        if (error != null){
+            Text(
+                text = error!!,
+                color = Color.Red
+            )
         }
     }
 

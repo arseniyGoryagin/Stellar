@@ -33,19 +33,52 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 import org.jetbrains.annotations.Contract
 import com.stellar.components.Input.TextInput
+import com.stellar.components.screens.ErrorScreen
+import com.stellar.components.screens.LoadingScreen
+import com.stellar.viewmodels.UserState
+import com.stellar.viewmodels.UserViewModel
 
 @Composable
-fun SignInScreen(navController: NavController){
+fun SignInScreen(navController: NavController, userViewModel: UserViewModel){
+
+
+
+    val userState = userViewModel.userState
+
+
+
+    when(userState){
+        UserState.Error -> ErrorScreen(message = "Error login in")
+        UserState.Loading -> LoadingScreen()
+        UserState.Idle -> LogInContent(viewModel = userViewModel)
+        is UserState.Success -> {navController.navigate("Home")}
+    }
+
+
+
+
+}
+
+
+@Composable
+fun LogInContent(viewModel: UserViewModel){
 
     var showPassword by remember {
         mutableStateOf(true)
     }
 
+    var password by remember {
+        mutableStateOf("")
+    }
+    var email by remember {
+        mutableStateOf("")
+    }
 
     Column() {
         Text("Log in",
@@ -72,7 +105,12 @@ fun SignInScreen(navController: NavController){
             visibleText = true,
             trailingIcon = {},
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
-            onValueChange = {})
+            onValueChange = {
+
+
+                email = it
+
+            })
 
         TextInput(name = "Password",
             placeholder = "Enter your password",
@@ -91,11 +129,20 @@ fun SignInScreen(navController: NavController){
 
             },
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
-            onValueChange = {})
+            onValueChange = {
+
+                password = it
+
+            })
 
 
         Button(
-            onClick = {},
+            onClick = {
+
+                viewModel.login(email, password)
+
+
+            },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
             modifier = Modifier
                 .padding(top = 16.dp, start = 24.dp, end = 24.dp)
@@ -105,6 +152,7 @@ fun SignInScreen(navController: NavController){
             Text("Sign in", fontSize = 18.sp)
         }
     }
+
 }
 
 
