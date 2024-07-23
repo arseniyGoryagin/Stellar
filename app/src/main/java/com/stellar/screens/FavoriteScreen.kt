@@ -1,14 +1,18 @@
 package com.stellar.screens
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
@@ -52,6 +56,9 @@ import com.stellar.viewmodels.FavoritesViewModel
 fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController) {
 
 
+    val scrollState = rememberScrollState()
+
+
     Scaffold(
         topBar = { FavoriteTopBar(navController = navController) },
         content = { innerPadding ->
@@ -75,6 +82,11 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                 }
 
 
+                var searchString by remember {
+                    mutableStateOf("")
+                }
+
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -82,14 +94,19 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                         .padding(horizontal = 16.dp)
                 )
                 {
+
                     SearchInput(
                         placeholder = "Search something",
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp, bottom = 16.dp)
-                    )
+                            .padding(top = 16.dp, bottom = 16.dp),
+                        onValueChange = {searchString = it}
+                        )
                     Row(
-                        modifier = Modifier.padding(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .horizontalScroll(scrollState),
                     ) {
                         buttons.forEachIndexed(){ index, buttonName ->
                             Button(
@@ -103,6 +120,7 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                                         Color.White}else{
                                         Grey170},
                                 ),
+                                border = if(selectedButton != buttonName){BorderStroke(1.dp, Grey170)}else{null}
                             ) {
                                 Text(text = buttonName)
                             }
@@ -114,6 +132,14 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                         is FavoriteProductsState.Success ->
                         {
                             var  products = favoriteProducts.products
+
+
+                            if(searchString.isNotEmpty()){
+                                products = products.filter {
+                                    it.title.contains(searchString, ignoreCase = true)
+                                }
+                            }
+
 
                             when(selectedButton){
                                 "Cheapest" -> {
@@ -160,7 +186,7 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
 
 
 @Composable
-fun SearchInput(placeholder :String, modifier: Modifier){
+fun SearchInput(placeholder :String, modifier: Modifier, onValueChange : (String) -> Unit){
 
     var inputValue by remember {
         mutableStateOf("")
@@ -183,7 +209,10 @@ fun SearchInput(placeholder :String, modifier: Modifier){
             focusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
             unfocusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
         ),
-        onValueChange = {inputValue = it},
+        onValueChange = {
+            inputValue = it
+            onValueChange(it)
+                        },
         shape = RoundedCornerShape(20.dp),
         leadingIcon = {Icon(Icons.Outlined.Search, contentDescription = "Search")},
     )

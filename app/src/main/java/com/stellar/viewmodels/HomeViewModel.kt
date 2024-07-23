@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.stellar.data.BaseProduct
 import com.stellar.data.Category
 import com.stellar.data.Product
 import com.stellar.data.Repository

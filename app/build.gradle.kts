@@ -72,9 +72,20 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.core:core-splashscreen:1.0.0")
 
+
+    // room paging
+    implementation("androidx.room:room-paging:2.5.0") // Replace with your Room version
+
+
+
+    // Pagin3
+    implementation ("androidx.paging:paging-runtime-ktx:3.1.0-beta01")
+    implementation("androidx.paging:paging-compose:3.2.0") // or the latest version
+    implementation("androidx.compose.ui:ui:1.5.0")
+
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
-// Retrofit with Scalar Converter
+    // Retrofit with Scalar Converter
     implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
 
     // GSON

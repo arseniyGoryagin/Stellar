@@ -1,5 +1,6 @@
 package com.stellar.screens.SearchScreen
 
+import android.app.appsearch.AppSearchManager.SearchContext
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.clearCompositionErrors
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,11 +34,15 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.persistableBundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.stellar.components.Buttons.BackButton
 import com.stellar.components.Buttons.NotificationButton
 import com.stellar.components.TopBars.SearchInput
 import com.stellar.components.TopBars.SearchToopBar
 import com.stellar.components.columns.ItemColumn
+import com.stellar.components.columns.ItemColumnPaginated
 import com.stellar.components.items.BigItemCard
 import com.stellar.components.items.SearchItemCard
 import com.stellar.components.screens.ErrorScreen
@@ -47,29 +53,26 @@ import com.stellar.screens.SearchScreen.components.SearchTagRow
 import com.stellar.ui.theme.Grey170
 import com.stellar.viewmodels.PopularSearches
 import com.stellar.viewmodels.SearchViewModel
-import com.stellar.viewmodels.Searches
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-
-
-
+import kotlinx.coroutines.flow.map
 
 
 @Composable
-fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navController: NavController, searchString : String?){
+fun SearchScreen(viewModel: SearchViewModel, navController: NavController, searchString : String?){
 
+
+    searchString?.let {
+        LaunchedEffect(Unit) {
+            viewModel.getProducts(searchString)
+        }
+    }
 
     var isActive by remember {
         if(searchString != null) {
             mutableStateOf(true)
         }else{
             mutableStateOf(false)
-        }
-    }
-
-    searchString?.let {
-        LaunchedEffect(Unit) {
-            viewModel.getProducts(searchString)
         }
     }
 
@@ -84,11 +87,10 @@ fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navControll
     }
     val onValueChanged = remember(viewModel) {
         { it : String ->
+            println("Getting products === " + it)
             viewModel.getProducts(it)
         }
     }
-
-    println("Recompooooo")
 
 
 
@@ -96,7 +98,7 @@ fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navControll
         topBar =  {
             SearchTopBar(
                 navController = navController,
-                onFilter = onFilter,
+                onFilter = {},
                 onFocuse = {
                     if(it){isActive = true}
                 },
@@ -105,25 +107,22 @@ fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navControll
                 searchString = searchString
                 )
         },
-
     content = {padding ->
-
-
-
         Box(modifier = Modifier.padding(padding)) {
             if (!isActive) {
                 SearchSuggestionsContent(viewModel, navController)
             } else {
-                val searchResults = viewModel.searchResults
-                when (searchResults) {
-                    Searches.Error -> ErrorScreen(message = "Error loading products")
-                    Searches.Loading -> LoadingScreen()
-                    is Searches.Success -> SearchResults(
-                        products = searchResults.product,
-                        onItemClick = { itemId ->
-                            navController.navigate("Product/$itemId")
-                        })
-                }
+
+                val flow = viewModel.products?.collectAsState(initial = PagingData.empty())
+                
+                
+                val products : LazyPagingItems<Product>? = viewModel.products?.collectAsLazyPagingItems()
+                println("Products value \n" + viewModel.products)
+                println("Actual products \nk" + products?.loadState)
+
+                SearchContent(products, onItemClick = {
+
+                })
             }
         }
     }
@@ -135,12 +134,12 @@ fun SearchScreen(viewModel: SearchViewModel, onFilter : () -> Unit,  navControll
 
 
 
-
-
-
 @Composable
-fun SearchResults(products : List<Product>, onItemClick :(Int) -> Unit){
-    if (products.isEmpty()) {
+fun SearchContent(products: LazyPagingItems<Product>?, onItemClick :(Int) -> Unit){
+
+
+
+    if (products == null || products.itemCount == 0) {
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
@@ -148,11 +147,12 @@ fun SearchResults(products : List<Product>, onItemClick :(Int) -> Unit){
             Text(
                 text = "No products found, try changing the filters",
                 color = Grey170,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
     } else {
-        ItemColumn(products = products, onFavorite = { /*TODO*/ },
+        ItemColumnPaginated(products = products, onFavorite = { /*TODO*/ },
             onClick = onItemClick,
             onDeFavorite = {},
             modifier = Modifier

@@ -12,7 +12,8 @@ interface NotificationsDao {
     @Insert
     fun insertNotification(notification : Notification)
 
-    @Query("Select * from notifications_table ORDER by id LIMIT :amount OFFSET :offset ")
-    fun getNotifications(amount : Int, offset : Int) :  List<Notification>
+
+    //@Query("Select * from notifications_table ORDER by id LIMIT :amount OFFSET :offset ")
+    //fun getNotifications(amount : Int, offset : Int) :  List<Notification>
 
 }

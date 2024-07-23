@@ -178,8 +178,7 @@ fun MainAppScaffold(startDestination : String, navController: NavHostController)
                     SearchScreen(
                         navController = navController,
                         searchString = backStackEntry.arguments?.getString("searchString"),
-                        viewModel = searchViewModel,
-                        onFilter = {}
+                        viewModel = searchViewModel
                     )
                 }
 

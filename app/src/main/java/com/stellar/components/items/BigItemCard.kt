@@ -114,7 +114,8 @@ fun ImageBox(imgSrc : String,onFavorite: () -> Unit, onDeFavorite : () -> Unit, 
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 error = {Image(
-                    painter = painterResource(id = R.drawable.image_broken_variant),
+                    painter = painterResource(
+                        id = R.drawable.noimage),
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier.fillMaxSize()

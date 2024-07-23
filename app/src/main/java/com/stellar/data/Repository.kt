@@ -1,12 +1,12 @@
 package com.stellar.data
 
 import android.content.Context
-import androidx.core.content.contentValuesOf
 import androidx.lifecycle.MutableLiveData
 import com.stellar.api.PlatziApi
 import com.stellar.data.db.Db
-import com.stellar.data.db.dao.NotificationsDao
 import com.stellar.data.db.entetities.Notification
+import com.stellar.data.db.entetities.ProductEntity
+import com.stellar.data.dto.ProductDto
 import com.stellar.data.requests.LoginRequest
 import com.stellar.data.requests.NewPassword
 import com.stellar.data.requests.RefreshToken
@@ -14,7 +14,6 @@ import com.stellar.data.requests.RegisterRequest
 import com.stellar.data.requests.UserData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -38,6 +37,7 @@ class Repository @Inject constructor(private val platziApi: PlatziApi, private v
 
 
     val notificationsDao = db.notificationDao()
+    val productDao = db.productDao()
 
 
 
@@ -57,6 +57,24 @@ class Repository @Inject constructor(private val platziApi: PlatziApi, private v
         println("returnes products \n" + product)
         return toProduct(product)
 
+    }
+
+
+    // Products\
+    suspend fun getSearchProducts(searchString : String, page: Int, perPage: Int): List<ProductEntity> {
+        return toProductEnteties(
+            platziApi.getProducts(
+                title = searchString,
+                limit = perPage,
+                offset = page * perPage))
+    }
+
+    suspend fun updateDbWithProducts(products : List<ProductEntity>){
+        //productDao.upsertProducts(products)
+    }
+
+    suspend fun clearAllProducts(){
+       // productDao.clearAll()
     }
 
 
@@ -96,26 +114,10 @@ class Repository @Inject constructor(private val platziApi: PlatziApi, private v
 
 
     // Searhces
-
-    // TODO fix here
-
-
-    private fun toProducts(products : List<BaseProduct>) : List<Product>{
-       return  products.map {
-           toProduct(it)
-        }
-
-    }
-
-    private fun toProduct(product : BaseProduct) : Product{
-        val isFavorite = product.id in favoriteItems
-        return  BaseProduct.BaseProductToProduct(product,isFavorite)
-    }
-
-    suspend fun getPopularSearches() : List<Product>{
+    suspend fun getPopularSearches() : List<PopularProduct>{
         val products = platziApi.getProducts("", limit = 1)
         println(products)
-        return toProducts(products.take(4))
+        return toPopularProducts(toProducts(products.take(4)))
     }
 
     fun addSearch(search: String) {
@@ -132,9 +134,55 @@ class Repository @Inject constructor(private val platziApi: PlatziApi, private v
     }
 
 
+    // Utility to
+    private fun  toProducts(products : List<ProductDto>) : List<Product>{
+        return  products.map {
+            toProduct(it)
+        }
+    }
+    private fun  toProductEnteties(products : List<ProductDto>) : List<ProductEntity>{
+        return  products.map {
+            toProductEntity(it)
+        }
+    }
+    private fun toProduct(product : ProductDto) : Product{
+        val isFavorite = product.id in favoriteItems
+        return  ProductDto.ProductDtoToProduct(product,isFavorite)
+    }
+    private fun toProductEntity(product : ProductDto) : ProductEntity{
+        val isFavorite = product.id in favoriteItems
+        return  ProductDto.ProductDtoToProductEntity(product,isFavorite)
+    }
+
+
+
+    private fun toPopularProduct(product : Product) : PopularProduct{
+        return PopularProduct(product, type = randomType(), searches = randomSearches() )
+    }
+
+    private fun toPopularProducts(products : List<Product>) : List<PopularProduct> {
+        return products.map {
+            toPopularProduct(it)
+        }
+    }
+
+
+    private fun randomType() : String{
+        val type = listOf("Hot", "New", "Popular")
+        val number = (0..type.size-1).random()
+        return type[number]
+    }
+
+    private fun randomSearches() : String{
+       return (1000..5000).random().toString()
+    }
+
+
+
+
+
+
     // User
-
-
     private suspend fun getUser(jwtToken: JwtToken) : User{
         return platziApi.getProfile("Bearer ${jwtToken.access_token!!}")
     }
@@ -150,7 +198,6 @@ class Repository @Inject constructor(private val platziApi: PlatziApi, private v
 
 
     // JWT
-
     private suspend fun auth(email: String, password: String) : JwtToken{
         return platziApi.auth(LoginRequest(email, password))
     }
@@ -236,8 +283,10 @@ class Repository @Inject constructor(private val platziApi: PlatziApi, private v
         notificationsDao.insertNotification(notification)
     }
     suspend fun getNotification(amount : Int, offset : Int) : List<Notification>{
-        return notificationsDao.getNotifications(amount, offset)
+        return emptyList<Notification>()//notificationsDao.getNotifications(amount, offset)
     }
+
+
 
     init {
         jwtToken = getJwtTokenFromPrefs()

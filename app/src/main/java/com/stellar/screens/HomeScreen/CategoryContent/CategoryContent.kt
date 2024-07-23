@@ -8,13 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.stellar.R
 import com.stellar.components.screens.ErrorScreen
 import com.stellar.components.screens.LoadingScreen
 import com.stellar.data.Category
 import com.stellar.viewmodels.CategoriesState
 import com.stellar.viewmodels.HomeViewModel
-import com.stellar.viewmodels.NewArrivalsState
 
 
 @Composable
@@ -40,7 +38,7 @@ fun CategoryCards(categories : List<Category>){
             .padding(horizontal = 16.dp)
     ) {
         categories.forEach { category ->
-            CategoryCard(name = category.name, imageSrc = category.image, onClick = {})
+            CategoryCard(name = category.name, imageSrc = category.image!!, onClick = {})
         }
     }
     

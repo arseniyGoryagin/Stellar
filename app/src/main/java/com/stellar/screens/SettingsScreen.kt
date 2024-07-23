@@ -52,9 +52,9 @@ import com.stellar.ui.theme.Grey241
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.UserViewModel
 
+
 @Composable
 fun SettingsScreen(navController : NavController, userViewModel: UserViewModel){
-
 
 
     var showAlertDialog by remember{

@@ -38,7 +38,7 @@ fun ProfilePictureButton(onClick : () -> Unit, imgSrc : String){
             contentScale = ContentScale.Crop,
             error = {
                 Image(
-                painter = painterResource(id = R.drawable.image_broken_variant),
+                painter = painterResource(id = R.drawable.nopic),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize()

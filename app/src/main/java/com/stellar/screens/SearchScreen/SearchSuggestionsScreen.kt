@@ -1,11 +1,13 @@
 package com.stellar.screens.SearchScreen
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -13,6 +15,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,7 +55,7 @@ fun SearchSuggestionsContent(viewModel: SearchViewModel, navController: NavContr
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 16.dp)
+                            .padding(bottom = 16.dp, top = 16.dp)
 
                     )
 
@@ -84,20 +87,43 @@ fun SearchSuggestionsContent(viewModel: SearchViewModel, navController: NavContr
                         val products = popularSearches.puularSearchProducts
 
 
+
                         items(products.size) { index ->
-                            val product = products[index]
+
+                            val popularProduct = products[index]
+                            val product = popularProduct.product
+
                             SearchItemCard(
                                 title = product.title,
                                 imgSrc = product.images[0],
                                 onClick = {
                                     navController.navigate("Product/${product.id}")
                                 },
+
+                                trailingIcon = {
+                                    val backgorundColor = when(popularProduct.type){
+                                        "Hot" ->{Color.Red}
+                                        "Popular" -> {Color.Green}
+                                        "New" -> {Color.Yellow}
+                                        else -> {Color.Red}
+                                    }
+                                    Box(
+                                        modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(backgorundColor)
+                                    ){
+                                        Text(
+                                            modifier = Modifier.padding(horizontal = 5.dp),
+                                            text = popularProduct.type,
+                                            color = Color.White
+                                        )
+                                    }
+                                               },
+                                searches = "${popularProduct.searches}k searches today",
                                 modifier =
                                 Modifier
                                     .fillMaxWidth()
                                     .height(100.dp)
                                     .padding(top = 16.dp)
-                            )
+                                )
                         }
                     }
                 }

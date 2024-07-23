@@ -1,11 +1,10 @@
 package com.stellar.api
 
-import com.stellar.data.requests.UserData
-import com.stellar.data.BaseProduct
 import com.stellar.data.Category
+import com.stellar.data.requests.UserData
 import com.stellar.data.JwtToken
-import com.stellar.data.Product
 import com.stellar.data.User
+import com.stellar.data.dto.ProductDto
 import com.stellar.data.requests.LoginRequest
 import com.stellar.data.requests.NewPassword
 import com.stellar.data.requests.RefreshToken
@@ -24,7 +23,7 @@ interface PlatziApi{
     suspend fun getNewArrivals(
         @Query("offset") offset : Int = 0,
         @Query("limit") limit : Int = 10,
-    ): List<BaseProduct>
+    ): List<ProductDto>
 
 
     @GET("categories")
@@ -36,22 +35,18 @@ interface PlatziApi{
     suspend fun getProducts(
         @Query("title") title : String,
         @Query("limit") limit : Int = 10,
-        @Query("price_min") priceMin : Int = 0,
-        @Query("price_max") priceMax: Int = Int.MAX_VALUE,
+        @Query("offset") offset: Int = 0,
+        @Query("price_min") priceMin : Int? = null,
+        @Query("price_max") priceMax: Int? = null,
         @Query("Category") categoryId: Int? = null
-    ) : List<BaseProduct>
+    ) : List<ProductDto>
 
 
-    /*
-    @GET("products/{id}")
-    suspend fun getProduct(
-        @Path("id") id : Int,
-    ) : List<Product>*/
 
     @GET("products/{id}")
     suspend fun getProduct(
         @Path("id") id: Int
-    ): BaseProduct
+    ): ProductDto
 
 
     @POST("users")

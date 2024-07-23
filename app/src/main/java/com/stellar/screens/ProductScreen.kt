@@ -95,7 +95,7 @@ fun ProductContent(product: Product, onAddToCart: (Int) -> Unit){
                 .fillMaxHeight(0.75f),
             error = {
                 Image(
-                    painter = painterResource(id = R.drawable.image_broken_variant),
+                    painter = painterResource(id = R.drawable.noimage),
                     contentDescription = null,
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier.fillMaxSize()

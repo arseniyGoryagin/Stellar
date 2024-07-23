@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -167,9 +168,10 @@ private fun MyProfileContent(userViewModel: UserViewModel, navController: NavCon
                                     .build(),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
+                                modifier = Modifier.clip(CircleShape),
                                 error = {
                                     Image(
-                                        painter = painterResource(id = R.drawable.image_broken_variant),
+                                        painter = painterResource(id = R.drawable.nopic),
                                         contentDescription = null,
                                         contentScale = ContentScale.Fit,
                                         modifier = Modifier.clip(RoundedCornerShape(12.dp))
