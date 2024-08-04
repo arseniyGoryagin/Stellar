@@ -1,73 +1,58 @@
 package com.stellar.screens
 
-import android.renderscript.ScriptGroup.Input
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.room.util.newStringBuilder
+import com.stellar.R
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
-import org.jetbrains.annotations.Contract
 import com.stellar.components.Input.TextInput
-import com.stellar.components.screens.ErrorScreen
-import com.stellar.components.screens.LoadingScreen
-import com.stellar.viewmodels.UserState
-import com.stellar.viewmodels.UserViewModel
+import com.stellar.viewmodels.LoginState
+import com.stellar.viewmodels.LoginViewModel
+import com.stellar.viewmodels.RegisterState
 
 @Composable
-fun SignInScreen(navController: NavController, userViewModel: UserViewModel){
+fun LogInScreen(navController: NavController, viewmodel : LoginViewModel){
 
 
 
-    val userState = userViewModel.userState
+    val loginState = viewmodel.loginState
 
 
-
-    when(userState){
-        UserState.Error -> ErrorScreen(message = "Error login in")
-        UserState.Loading -> LoadingScreen()
-        UserState.Idle -> LogInContent(viewModel = userViewModel)
-        is UserState.Success -> {navController.navigate("Home")}
+    var onLogin = {
+        navController.navigate("Home")
     }
 
 
-
+    LogInContent(loginState = loginState, onLogin = onLogin)
 
 }
 
 
 @Composable
-fun LogInContent(viewModel: UserViewModel){
+fun LogInContent(loginState : LoginState, onLogin : () -> Unit){
 
     var showPassword by remember {
         mutableStateOf(true)
@@ -79,6 +64,17 @@ fun LogInContent(viewModel: UserViewModel){
     var email by remember {
         mutableStateOf("")
     }
+
+    var onEmailValueChanegd = { newEmail : String ->
+        email = newEmail
+    }
+
+    var onPasswordValueChaned = { newPassword: String ->
+        password = newPassword
+    }
+
+
+    val enabled  = if(loginState is LoginState.Loading){false}else{true}
 
     Column() {
         Text("Log in",
@@ -94,9 +90,9 @@ fun LogInContent(viewModel: UserViewModel){
                 .padding( bottom = 8.dp, start = 16.dp, end= 16.dp))
 
 
-
-
-        TextInput(name = "Email",
+        TextInput(
+            enabled = enabled,
+            name = "Email",
             placeholder = "Enter your email",
             icon = { Icon(
                 Icons.Outlined.Email,
@@ -105,12 +101,12 @@ fun LogInContent(viewModel: UserViewModel){
             visibleText = true,
             trailingIcon = {},
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
-            onValueChange = {
+            onValueChange = onEmailValueChanegd)
 
 
-                email = it
-
-            })
+        val icon = if(!showPassword){
+            R.drawable.eye_off_outline}else{
+            R.drawable.eye_outline}
 
         TextInput(name = "Password",
             placeholder = "Enter your password",
@@ -120,36 +116,29 @@ fun LogInContent(viewModel: UserViewModel){
             )},
             visibleText = showPassword,
             trailingIcon = {
-
                 IconButton(onClick = {showPassword = !showPassword}) {
-                    Icon(Icons.Outlined.Info, contentDescription = "Show password")
+                    Icon(painter = painterResource(id = icon), contentDescription = "Show password")
                 }
-
-
-
             },
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
-            onValueChange = {
-
-                password = it
-
-            })
+            onValueChange = onPasswordValueChaned)
 
 
         Button(
-            onClick = {
-
-                viewModel.login(email, password)
-
-
-            },
+            onClick = if(loginState is LoginState.Idle || loginState is LoginState.Error){onLogin}else{{}},
             colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
             modifier = Modifier
                 .padding(top = 16.dp, start = 24.dp, end = 24.dp)
                 .fillMaxWidth()
         )
         {
-            Text("Sign in", fontSize = 18.sp)
+            if(loginState is LoginState.Loading)
+                CircularProgressIndicator()
+            else
+                Text("Create an Account",
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
         }
     }
 

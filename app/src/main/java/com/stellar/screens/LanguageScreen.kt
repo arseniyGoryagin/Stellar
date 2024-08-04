@@ -51,7 +51,7 @@ fun LanguageScreen(navController : NavController){
     }
 
     Scaffold(
-        topBar = { GenericTopBar(name = "Language",navController = navController) },
+        topBar = { GenericTopBar(onBackClick = {navController.navigateUp()}, name = "Language") },
         content = { innerPadding ->
             Box(
                 modifier =

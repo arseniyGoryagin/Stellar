@@ -21,7 +21,7 @@ import org.intellij.lang.annotations.JdkConstants.VerticalScrollBarPolicy
 fun LegalScreen(navController: NavController){
 
     Scaffold (
-    topBar = {GenericTopBar(navController = navController, name = "Legal and Polices")},
+    topBar = {GenericTopBar(onBackClick = {navController.navigateUp()}, name = "Legal and Polices")},
         content = { padding ->
 
 

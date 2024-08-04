@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.booleanResource
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +49,14 @@ import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.Grey241
 
 @Composable
-fun CartCard(imgSrc : String, productName: String, productPrice : Long){
+fun CartCard(imgSrc : String, productQty : Int,
+             productName: String, productPrice :
+            Long, productColor : String,
+             cartProductId: Long, onDelete : (Long) -> Unit,
+             modifier: Modifier = Modifier,
+             onStepUpCb: (Long) -> Unit,
+             onStepDownCb: (Long) -> Unit
+){
 
 
     var qty by remember {
@@ -53,83 +64,106 @@ fun CartCard(imgSrc : String, productName: String, productPrice : Long){
     }
 
 
+    var onStepUp = { value : Int->
+        qty  = value
+        onStepUpCb(cartProductId)
+    }
 
-        Row(
+    var onStepDown ={ value : Int ->
+        qty  = value
+        onStepDownCb(cartProductId)
+    }
 
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+
+    Column(
+        modifier = modifier
+    ){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(3f)
+                .padding(bottom = 10.dp)
+        ) {
+
+            SubcomposeAsyncImage(
+            model = ImageRequest.Builder(context = LocalContext.current)
+                .data(imgSrc)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(16.dp)),
+            error = {
+                Image(
+                    painter = painterResource(id = R.drawable.image_broken_variant),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                )
+            },
+            loading = {
+                Box(
+
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            )
+            IconButton(
+                onClick = {
+                    onDelete(cartProductId)
+                },
+                modifier = Modifier.align(Alignment.TopEnd))
+            {
+                Icon(
+                    painter = painterResource(id = R.drawable.delete_outline),
+                    contentDescription = null,
+                    tint = Color.Red
+                )
+            }
+            Stepper(
+                onStepDown = onStepDown,
+                onStepUp = onStepUp,
+                startValue = productQty,
+                minValue = 0,
+                modifier = Modifier.align(Alignment.BottomStart)
+            )
+            }
+        Row (
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(3F)
-                .padding(bottom = 16.dp, top = 16.dp, start = 16.dp, end = 16.dp)
-
-        ) {
-            Checkbox(
-                checked = false,
-                onCheckedChange = {},
-                modifier = Modifier.align(Alignment.CenterVertically)
-
-            )
-            SubcomposeAsyncImage(
-                model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(imgSrc)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxHeight().clip(RoundedCornerShape(16.dp)),
-                error = {
-                    Image(
-                        painter = painterResource(id = R.drawable.image_broken_variant),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                    )
-                },
-                loading = {
-                    Box(
-
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            )
-            Column(
-
-                modifier = Modifier.fillMaxWidth()
-            ) {
+                .weight(1f)
+        ){
+            Column {
                 Text(
                     text = productName,
-                    fontSize = 16.sp
-                )
-                Row(
-                    modifier = Modifier.padding(top = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-
-                ) {
-                    Stepper(onStepDown = { value ->
-                        qty  = value
-                         },
-                        onStepUp = { value ->
-                            qty  = value
-                        },
-                        startValue = 1,
-                        minValue = 0,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = "$" + (productPrice * qty).toString(),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
 
                     )
-                }
+                Text(
+                    text = "Color:" + productColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+
+                    )
 
             }
+            Text(
+                text = "$" + (productPrice * qty).toString(),
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp
+
+            )
+
+
         }
 
+    }
 }
 
 

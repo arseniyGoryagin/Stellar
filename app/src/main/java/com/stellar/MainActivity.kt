@@ -6,33 +6,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -43,53 +29,46 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.stellar.components.BottomNavigation.BottomNavigationBar
-import com.stellar.components.TopBars.CartTopBar
-import com.stellar.constants.NavItems
+import com.stellar.data.datastore.UserStore
 import com.stellar.screens.HomeScreen.HomeScreen
 import com.stellar.screens.MyOrderScreen
 import com.stellar.screens.MyProfileScreen
 import com.stellar.screens.NotificationsScreen
 import com.stellar.screens.SearchScreen.SearchScreen
 import com.stellar.ui.theme.StellarTheme
-import com.stellar.components.TopBars.FavoriteTopBar
-import com.stellar.components.TopBars.HomeTopBar
-import com.stellar.components.TopBars.NotificationsTopBar
-import com.stellar.components.TopBars.OrderTopBar
-import com.stellar.components.TopBars.ProductTopBar
-import com.stellar.components.TopBars.ProfileTopBar
-import com.stellar.components.TopBars.SettingsTopBar
-import com.stellar.components.screens.ErrorScreen
-import com.stellar.components.screens.LoadingScreen
+import com.stellar.screens.AddNewCardScreen
 import com.stellar.screens.CartScreen
 import com.stellar.screens.ChangePasswordScreen
+import com.stellar.screens.ChooseAddressScreen
 import com.stellar.screens.CreateAccountScreen
 import com.stellar.screens.FavoriteScreen
-import com.stellar.screens.FilterModalScreen
 import com.stellar.screens.HelpScreen
 import com.stellar.screens.LanguageScreen
 import com.stellar.screens.LegalScreen
+import com.stellar.screens.LogInScreen
 import com.stellar.screens.NotificationsSettingsScreen
+import com.stellar.screens.PaymentScreen.PaymentScreen
 import com.stellar.screens.ProductScreen
-import com.stellar.screens.SearchScreen.SearchSuggestionsContent
 import com.stellar.screens.SecurityScreen
 import com.stellar.screens.SettingsScreen
-import com.stellar.screens.SignInScreen
 import com.stellar.screens.WelcomeScreen
-import com.stellar.ui.theme.Grey170
-import com.stellar.ui.theme.PurpleFont
-import com.stellar.viewmodels.AuthState
+import com.stellar.viewmodels.AddNewCardViewModel
+import com.stellar.viewmodels.AddressViewModel
 import com.stellar.viewmodels.CartViewModel
 import com.stellar.viewmodels.ChangePasswordViewModel
+import com.stellar.viewmodels.CreateAccountViewModel
 import com.stellar.viewmodels.FavoritesViewModel
 import com.stellar.viewmodels.HomeViewModel
+import com.stellar.viewmodels.LoginViewModel
 import com.stellar.viewmodels.MyProfileViewModel
 import com.stellar.viewmodels.NotificationsViewModel
+import com.stellar.viewmodels.OrderViewModel
+import com.stellar.viewmodels.PaymentViewModel
 import com.stellar.viewmodels.ProductViewModel
 import com.stellar.viewmodels.SearchViewModel
-import com.stellar.viewmodels.UserState
+import com.stellar.viewmodels.SettingsViewModel
 import com.stellar.viewmodels.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -98,9 +77,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        //WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge()
         setContent {
-            App()
+                App()
         }
     }
 }
@@ -114,17 +94,11 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App (){
-
+    val context = LocalContext.current
+    val userStore = UserStore(context)
+    val token = userStore.getToken()
     val navController = rememberNavController()
-
-    val userViewModel : UserViewModel = hiltViewModel()
-
-    val userAuthState = userViewModel.authState
-
-    val startDestination = when(userAuthState){
-        AuthState.Authenticated -> "Home"
-        AuthState.NotAuthenticated -> "Welcome"
-    }
+    val startDestination = if (token != ""){"Home"}else{"Welcome"}
 
     StellarTheme {
         MainAppScaffold(startDestination = startDestination, navController)
@@ -139,9 +113,8 @@ fun App (){
 fun MainAppScaffold(startDestination : String, navController: NavHostController){
 
 
-
+    val userViewModel : UserViewModel = hiltViewModel()
     val homeViewModel: HomeViewModel = hiltViewModel()
-    val userViewModel: UserViewModel = hiltViewModel()
     val cartViewModel: CartViewModel = hiltViewModel()
     val changePasswordViewModel: ChangePasswordViewModel = hiltViewModel()
     val myProfileViewModel: MyProfileViewModel = hiltViewModel()
@@ -149,6 +122,13 @@ fun MainAppScaffold(startDestination : String, navController: NavHostController)
     val productViewModel: ProductViewModel = hiltViewModel()
     val searchViewModel: SearchViewModel = hiltViewModel()
     val notificationsViewModel : NotificationsViewModel = hiltViewModel()
+    val paymentViewModel : PaymentViewModel = hiltViewModel()
+    val addressViewModel : AddressViewModel = hiltViewModel()
+    val addNewCardViewModel : AddNewCardViewModel = hiltViewModel()
+    val orderViewModel : OrderViewModel = hiltViewModel()
+    val loginViewModel : LoginViewModel = hiltViewModel()
+    val createAccountViewModel : CreateAccountViewModel = hiltViewModel()
+    val settingsViewModel : SettingsViewModel = hiltViewModel()
 
     Scaffold(
         content = { padding ->
@@ -189,7 +169,7 @@ fun MainAppScaffold(startDestination : String, navController: NavHostController)
                     FavoriteScreen(favoritesViewModel, navController)
                 }
                 composable("My Order") {
-                    MyOrderScreen(navController)
+                    MyOrderScreen(navController, orderViewModel)
                 }
                 composable("My Profile") {
                     MyProfileScreen(navController, userViewModel, myProfileViewModel)
@@ -201,16 +181,19 @@ fun MainAppScaffold(startDestination : String, navController: NavHostController)
                     WelcomeScreen(navController, userViewModel)
                 }
                 composable("Create Account") {
-                    CreateAccountScreen(navController, userViewModel)
+                    CreateAccountScreen(navController, createAccountViewModel)
                 }
                 composable("Sign In") {
-                    SignInScreen(navController, userViewModel)
+                    LogInScreen(navController, loginViewModel )
                 }
                 composable("Settings") {
-                    SettingsScreen(navController, userViewModel)
+                    SettingsScreen(navController, settingsViewModel)
                 }
                 composable("Cart") {
                     CartScreen(viewModel = cartViewModel, navController)
+                }
+                composable("Payment") {
+                    PaymentScreen(viewModel = paymentViewModel, navController = navController)
                 }
                 composable("Change Password") {
                     ChangePasswordScreen(navController = navController, changePasswordViewModel)
@@ -223,6 +206,12 @@ fun MainAppScaffold(startDestination : String, navController: NavHostController)
                 }
                 composable("Language Settings") {
                     LanguageScreen(navController)
+                }
+                composable("Address") {
+                    ChooseAddressScreen(navController = navController, viewModel = addressViewModel)
+                }
+                composable("NewCard") {
+                    AddNewCardScreen(navController = navController, addNewCardViewModel)
                 }
                 composable("Legal and Polices") {
                     LegalScreen(navController)

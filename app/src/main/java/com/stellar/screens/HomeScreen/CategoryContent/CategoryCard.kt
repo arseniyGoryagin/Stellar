@@ -47,7 +47,7 @@ fun CategoryCard(name : String, imageSrc : String, onClick : () -> Unit ){
         contentScale = ContentScale.Crop,
         modifier = modifier,
         error = {Image(
-            painter = painterResource(id = R.drawable.image_broken_variant),
+            painter = painterResource(id = R.drawable.noimage),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
             modifier = modifier

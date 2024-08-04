@@ -65,22 +65,36 @@ kapt {
 
 dependencies {
 
+
+
+    // Data store
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // Proto
+   implementation("androidx.datastore:datastore:1.1.1")
+
+    // card validation::
+
+    //implementation ("com.github.saeedkz:creditcardutils:1.0.0")
+
+
     // room
-    implementation ("androidx.room:room-runtime:2.5.1")
-    kapt ("androidx.room:room-compiler:2.5.1") // For Kotlin use kapt
+    val roomVersion = "2.6.1"
+    implementation ("androidx.room:room-runtime:$roomVersion")
+    kapt ("androidx.room:room-compiler:$roomVersion")
+    implementation ("androidx.room:room-ktx:$roomVersion")
 
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("androidx.core:core-splashscreen:1.0.0")
 
 
     // room paging
-    implementation("androidx.room:room-paging:2.5.0") // Replace with your Room version
+    implementation("androidx.room:room-paging:2.5.0")
 
 
 
     // Pagin3
     implementation ("androidx.paging:paging-runtime-ktx:3.1.0-beta01")
-    implementation("androidx.paging:paging-compose:3.2.0") // or the latest version
+    implementation("androidx.paging:paging-compose:3.2.0")
     implementation("androidx.compose.ui:ui:1.5.0")
 
     // Retrofit

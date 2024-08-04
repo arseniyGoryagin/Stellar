@@ -1,5 +1,6 @@
 package com.stellar.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,8 +50,11 @@ import com.stellar.components.screens.ErrorScreen
 import com.stellar.components.screens.LoadingScreen
 import com.stellar.constants.NavItems
 import com.stellar.data.User
+import com.stellar.data.requests.UserData
+import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.MyProfileViewModel
+import com.stellar.viewmodels.RegisterState
 import com.stellar.viewmodels.SaveDataState
 import com.stellar.viewmodels.UserState
 import com.stellar.viewmodels.UserViewModel
@@ -61,44 +65,48 @@ fun MyProfileScreen(navController: NavController, userViewModel: UserViewModel, 
 
 
     val savingState = myProfileViewModel.saveDataState
+    val userState = userViewModel.userState
 
+    if (userState is UserState.Idle || userState is UserState.Error){
+        navController.navigate("Welcome")
+    }
 
     LaunchedEffect(Unit) {
         myProfileViewModel.resetState()
     }
 
+
+    var onSaveChanged = { name : String, email : String ->
+        myProfileViewModel.updateUserData(name, email)
+    }
+
+    var onNewValue = {
+        myProfileViewModel.resetState()
+    }
+
+    var goToWelcomePage = {
+        navController.navigate("Welcome")
+    }
+
+
+
     Scaffold(
-        topBar = { ProfileTopBar(navController = navController) },
+        topBar = { ProfileTopBar(onBackClick = {navController.navigateUp()}, onNotificationClick = {navController.navigate("Notifications")}) },
         content = { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding)) {
-
-                when (savingState) {
-                    SaveDataState.Error -> MyProfileContent(
-                        userViewModel,
-                        navController = navController,
-                        viewModel = myProfileViewModel,
-                        "Erorr saving changes",
-                        null
-                    )
-
-                    SaveDataState.Idle -> MyProfileContent(
-                        userViewModel,
-                        navController = navController,
-                        viewModel = myProfileViewModel,
-                        null,
-                        null
-                    )
-
-                    SaveDataState.Loading -> LoadingScreen()
-                    SaveDataState.Success -> MyProfileContent(
-                        userViewModel,
-                        navController = navController,
-                        viewModel = myProfileViewModel,
-                        null,
-                        "Saved changes"
-                    )
+                when(userState){
+                    is UserState.Error -> {goToWelcomePage()}
+                    UserState.Idle -> {userViewModel.updateUserData()}
+                    UserState.Loading -> { CircularProgressIndicator()}
+                    is UserState.Success -> {
+                        MyProfileContent(
+                            onSaveChanges = onSaveChanged,
+                            onNewValue = onNewValue,
+                            savingState = savingState,
+                            userData = userState.userData,
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
-            }
         }
     )
 
@@ -112,140 +120,200 @@ fun MyProfileScreen(navController: NavController, userViewModel: UserViewModel, 
 
 
 @Composable
-private fun MyProfileContent(userViewModel: UserViewModel, navController: NavController, viewModel: MyProfileViewModel, error : String?, success : String?){
+private fun MyProfileContent(userData: User,
+                             savingState : SaveDataState,
+                             onSaveChanges : (String, String) -> Unit,
+                             onNewValue : () -> Unit,
+                             modifier: Modifier = Modifier){
 
 
 
-    val userState = userViewModel.userState
 
-
+    /*
     if(success != null){
         LaunchedEffect(Unit) {
             userViewModel.updateUserData()
         }
-    }
+    }*/
 
-    when(userState) {
-        UserState.Error -> ErrorScreen(message = "Error laoding profile")
-        UserState.Loading -> LoadingScreen()
-        UserState.Idle -> ErrorScreen(message = "User not logged in")
-        is UserState.Success -> {
+        val context = LocalContext.current
 
-
-            val userData = userState.userData
-
-
-            var success by remember {
-                mutableStateOf(success)
-            }
-
-            var error by remember {
-                mutableStateOf(error)
-            }
-
-            var name by remember {
-                mutableStateOf(userData.name)
-            }
-
-            var email by remember {
-                mutableStateOf(userData.email)
-            }
-
-
-
-
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            SubcomposeAsyncImage(
-                                model= ImageRequest.Builder(context = LocalContext.current)
-                                    .data(userData.avatar)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.clip(CircleShape),
-                                error = {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.nopic),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Fit,
-                                        modifier = Modifier.clip(RoundedCornerShape(12.dp))
-                                    )
-                                },
-                                loading = {
-                                    Box(
-
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                }
-                            )
-
-                            TextInput(
-                                name = "Name",
-                                startValue = userData.name,
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                icon = {
-                                    Icon(Icons.Filled.Person, contentDescription = null)
-                                },
-                                trailingIcon = { /*TODO*/ },
-                                onValueChange = {
-                                    name =it
-                                },
-                                visibleText = true
-                            )
-                            TextInput(
-                                name = "Email",
-                                startValue = userData.email,
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                icon = {
-                                    Icon(Icons.Filled.MailOutline, contentDescription = null)
-                                },
-                                trailingIcon = {
-                                },
-                                onValueChange = {
-                                    email =it
-
-                                },
-                                visibleText = true
-                            )
-                            if(success != null){
-                                Text(
-                                    success!!,
-                                    color = Color.Green
-                                )
-                            }
-                            if(error != null){
-                                Text(
-                                    error!!,
-                                    color = Color.Red
-                                )
-                            }
-                            Button(
-                                onClick = {
-                                    viewModel.updateUserData(name = name, email = email)
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
-                                modifier = Modifier
-                                    .padding(top = 16.dp, start = 24.dp, end = 24.dp)
-                                    .fillMaxWidth()
-                            )
-                            {
-                                Text("Save changes", fontSize = 18.sp)
-                            }
-                        }
-                    }
+        var isFirstChange by remember {
+            mutableStateOf(false)
         }
-    }
+
+
+        var name by remember {
+            mutableStateOf(userData.name)
+        }
+
+        var email by remember {
+            mutableStateOf(userData.email)
+        }
+
+
+
+        var onEmailValueChange = { newEmail : String ->
+            email = newEmail
+        }
+
+
+        var onNameValueChange = { newName : String ->
+            name = newName
+        }
+
+        var onSaveChangesClick = { name : String, email : String ->
+            isFirstChange = true
+            onSaveChanges(name, email)
+        }
+
+
+        LaunchedEffect(key1 = name, email) {
+            if(isFirstChange == true){
+                isFirstChange = false
+                onNewValue()
+            }
+        }
+
+
+
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            SubcomposeAsyncImage(
+                model= ImageRequest.Builder(context = LocalContext.current)
+                    .data(userData.avatar)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.clip(CircleShape),
+                error = {
+                    Image(
+                        painter = painterResource(id = R.drawable.nopic),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.clip(RoundedCornerShape(12.dp))
+                    )
+                },
+                loading = {
+                    Box(
+
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            )
+
+
+            val enabled = if(savingState is SaveDataState.Loading){false}else{true}
+            val error = if(savingState is SaveDataState.Error && isFirstChange == true){true}else{false}
+
+            TextInput(
+                    error =error,
+                    enabled = enabled,
+                    name = "Name",
+                    startValue = userData.name,
+                    modifier = Modifier
+                    .fillMaxWidth(),
+                    icon = {
+                    Icon(Icons.Filled.Person, contentDescription = null)
+                    },
+                    trailingIcon = { /*TODO*/ },
+                    onValueChange = onNameValueChange,
+                    visibleText = true
+            )
+            TextInput(
+                    error = error,
+                    enabled = enabled,
+                    name = "Email",
+                    startValue = userData.email,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    icon = {
+                        Icon(Icons.Filled.MailOutline, contentDescription = null)
+                    },
+                    trailingIcon = {
+                    },
+                    onValueChange = onEmailValueChange,
+                    visibleText = true
+            )
+
+
+            val buttonColor = if(savingState is SaveDataState.Success){
+                Grey170
+            }else{
+                PurpleFont
+            }
+
+
+            Button(
+                onClick = if(savingState is SaveDataState.Idle || savingState is SaveDataState.Error)
+                {{onSaveChangesClick(name, email)}}
+                else{{}},
+                colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+                modifier = Modifier
+                    .padding(top = 16.dp, start = 24.dp, end = 24.dp)
+                    .fillMaxWidth()
+            )
+            {
+
+                when(savingState){
+                    is SaveDataState.Error -> {
+                        Text(
+                            "Save changes",
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+                    SaveDataState.Idle -> { Text(
+                        "Save changes",
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(vertical = 10.dp)
+                    )}
+                    SaveDataState.Loading -> {CircularProgressIndicator()}
+                    SaveDataState.Success -> {
+                        Text(
+                            "Saved changes",
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+                }
+
+            }
+
+            if(savingState is SaveDataState.Error){
+                val message : String? = when(savingState.e){
+                    is retrofit2.HttpException ->{
+                        val repsonseBody = savingState.e.response()?.errorBody()?.string()
+                        repsonseBody
+                    }
+                    else -> savingState.e.localizedMessage
+                }
+
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+
+            if(savingState is SaveDataState.Success){
+                Toast.makeText(context, "Profile saved", Toast.LENGTH_SHORT).show()
+            }
+
+
+
+        }
+
+
+
+
+}
 
 
 

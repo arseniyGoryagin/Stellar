@@ -43,6 +43,7 @@ import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.SearchViewModel
 
+/*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchToopBar(navController : NavController, viewModel: SearchViewModel = hiltViewModel(), onFilter : () -> Unit){
@@ -81,57 +82,9 @@ fun SearchToopBar(navController : NavController, viewModel: SearchViewModel = hi
             NotificationButton(navController)
         }
     )}
+*/
 
 
 
-@Composable
-fun SearchInput(placeholder :String, value : String, onValueChanged : (search : String) -> Unit, onFilter: () -> Unit, onFocusChanged : (FocusState) -> Unit, onSearch : (String) -> Unit){
-
-    var inputValue by remember {
-        mutableStateOf(value)
-    }
-
-
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(63.dp)
-                .onFocusChanged { focuseState ->
-                    onFocusChanged(focuseState)
-                },
-            value = inputValue,
-            placeholder = { Text(placeholder) },
-            label = {},
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(245, 245, 245),
-                unfocusedContainerColor = Color(245, 245, 245),
-                focusedPlaceholderColor = Grey170,
-                unfocusedPlaceholderColor = Grey170,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = PurpleFont,
-                focusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
-                unfocusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
-            ),
-            onValueChange = {
-                inputValue = it
-                onValueChanged(it)
-                            },
-            shape = RoundedCornerShape(20.dp),
-            leadingIcon = {
-                IconButton(onClick = { onSearch(inputValue)}) {
-                    Icon(Icons.Outlined.Search, contentDescription = "Search")
-                }
-            },
-            trailingIcon ={
-
-                IconButton(onClick = { onFilter()}) {
-                    Icon(painter = painterResource(id = R.drawable.tune), contentDescription = null)
-                }
-            }
-        )
-
-
-}
 
 

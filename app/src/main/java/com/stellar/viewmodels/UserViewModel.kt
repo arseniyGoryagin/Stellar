@@ -24,15 +24,16 @@ import androidx.compose.runtime.setValue
 sealed interface UserState{
     data class Success(val userData : User) : UserState
     object Idle : UserState
-    object Error : UserState
+    data class Error(val e : Exception) : UserState
     object Loading : UserState
 }
 
 
+/*
 sealed interface AuthState{
     object NotAuthenticated  : AuthState
     object Authenticated : AuthState
-}
+}*/
 
 
 
@@ -40,89 +41,69 @@ sealed interface AuthState{
 class UserViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
 
     var userState : UserState by mutableStateOf(UserState.Idle)
-    var authState : AuthState by mutableStateOf(AuthState.NotAuthenticated)
 
-    fun login(email: String, password : String){
+    fun updateUserData(){
         viewModelScope.launch {
             try {
                 userState = UserState.Loading
-                val userData = repository.login(email, password)
+                val userData = repository.getUserData()
                 userState = UserState.Success(userData)
             }
             catch (e : Exception){
-                when(e){
-                    is retrofit2.HttpException ->{
-                        val repsonseBody = e.response()?.errorBody()?.string()
-                        println("Error ${e.message()}\n${repsonseBody}")
-                        userState = UserState.Idle
-                    }
-                    else -> {
-                        userState = UserState.Error
-                    }
-                }
+                handleException(e)
             }
         }
     }
 
+    fun resetState(){
+        userState = UserState.Idle
+    }
+
+    suspend fun refreshoken(){
+       repository.refreshToken()
+    }
+
+    private suspend fun handleException(e : Exception){
+        when(e){
+            is retrofit2.HttpException ->{
+                val repsonseBody = e.response()?.errorBody()?.string()
+                println("Error ${e.message()}\n${repsonseBody}")
 
 
-    fun register(email: String, password : String, name : String){
-        viewModelScope.launch {
-            try {
-                userState = UserState.Loading
-                val userData = repository.registerUser(email = email, password = password, name = name)
-                userState = UserState.Success(userData)
-                println("User registered!")
-            }
-            catch (e : Exception){
-                when(e){
-                    is retrofit2.HttpException ->{
-                        val repsonseBody = e.response()?.errorBody()?.string()
-                        println("Error ${e.message()}\n${repsonseBody}")
-                        userState = UserState.Idle
-
+                when(e.code()){
+                    401 ->{
+                        try {
+                            repository.refreshToken()
+                            updateUserData()
+                        }
+                        catch (e : Exception){
+                            when(e){
+                                is retrofit2.HttpException -> {
+                                    val repsonseBody = e.response()?.errorBody()?.string()
+                                    println("Error ${e.message()}\n${repsonseBody}")
+                                    repository.clearToken()
+                                    userState = UserState.Error(e)
+                                }
+                            }
+                            userState = UserState.Error(e)
+                        }
                     }
-                    else -> {
-                        userState = UserState.Error
-                    }
+                    else -> userState = UserState.Error(e)
                 }
+
+
             }
         }
+        userState = UserState.Error(e)
     }
 
     init {
-        viewModelScope.launch {
-
-            checkAuthState()
-
-
-            println("Auth state === " + authState)
-
-            if (authState == AuthState.NotAuthenticated){
-                return@launch
-            }
-
-
-            try {
-                refreshToken()
-            }catch (e : Exception){
-                when(e){
-                    is retrofit2.HttpException -> {
-                        repository.clearToken()
-                        authState = AuthState.NotAuthenticated
-                    }
-                }
-            }
-
-
-            updateUserData()
-        }
+        updateUserData()
     }
 
-    private suspend fun refreshToken(){
-            repository.refreshToken()
-    }
 
+
+    /*
     private fun checkAuthState(){
         val jwtToken = repository.getJwt()
 
@@ -136,67 +117,12 @@ class UserViewModel @Inject constructor(private val repository: Repository) : Vi
             println("Authenticatd !!!!!!")
             authState = AuthState.Authenticated
         }
-    }
+    }*/
 
 
-    private suspend fun fetchUserData(){
-        val userData = repository.getUserData()
-        userState = UserState.Success(userData)
-    }
-
-    private suspend fun handleException(e : Exception){
-        when(e){
-            is retrofit2.HttpException ->{
-                val repsonseBody = e.response()?.errorBody()?.string()
-                println("Error ${e.message()}\n${repsonseBody}")
-                when(e.code()){
-                    401 ->{
-                        try {
-                            repository.refreshToken()
-                            fetchUserData()
-                        }
-                        catch (e : Exception){
-                            when(e){
-                                is retrofit2.HttpException -> {
-                                    val repsonseBody = e.response()?.errorBody()?.string()
-                                    println("Error ${e.message()}\n${repsonseBody}")
-                                    repository.clearToken()
-                                    authState = AuthState.NotAuthenticated
-                                    userState = UserState.Idle
-                                }
-                            }
-                            userState = UserState.Error
-                        }
-                    }
-                }
-            }
-        }
-        userState = UserState.Error
-    }
 
 
-    fun resetState(){
-        userState = UserState.Idle
-    }
 
-
-    fun logout(){
-        userState = UserState.Idle
-        authState = AuthState.NotAuthenticated
-    }
-
-
-    fun updateUserData(){
-        viewModelScope.launch {
-            try {
-                userState = UserState.Loading
-                fetchUserData()
-            }
-            catch (e : Exception){
-               handleException(e)
-            }
-        }
-    }
 
 
 }

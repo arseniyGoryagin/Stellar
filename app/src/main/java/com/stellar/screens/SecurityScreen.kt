@@ -24,7 +24,7 @@ import com.stellar.ui.theme.Grey241
 @Composable
 fun SecurityScreen(navController : NavController){
     Scaffold(
-        topBar = { GenericTopBar(name = "Security",navController = navController) },
+        topBar = { GenericTopBar(name = "Security", onBackClick = {navController.navigateUp()}) },
         content = { innerPadding ->
             Box(
                 modifier =

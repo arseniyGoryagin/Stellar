@@ -4,13 +4,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-@Entity(tableName = "notifications_table")
-data class Notification(
-
+@Entity(tableName = "address_table")
+data class AddressEntity (
     @PrimaryKey(autoGenerate = true)
     val id : Int,
-
-    val icon : Int,
-    val name : String,
-    val description : String
+    val title : String,
+    val fullTitle : String,
+    val selected : Boolean
 )

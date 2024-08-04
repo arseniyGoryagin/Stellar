@@ -21,7 +21,7 @@ import com.stellar.screens.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationsTopBar(navController : NavController){
+fun NotificationsTopBar(onBackClick : () -> Unit, onSettingsClick : () -> Unit){
 
     val searchExtended by remember { mutableIntStateOf(0) }
 
@@ -36,12 +36,10 @@ fun NotificationsTopBar(navController : NavController){
             Text(text = "Notifications")
         },
         navigationIcon = {
-            BackButton(navController = navController)
+            BackButton(onClick = onBackClick)
         },
         actions={
-            SettingsButton {
-                navController.navigate("Settings")
-            }
+            SettingsButton(onClick = onSettingsClick)
         }
     )
 

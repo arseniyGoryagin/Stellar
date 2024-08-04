@@ -8,12 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 
 @Composable
-fun NotificationButton(navController : NavController){
+fun NotificationButton(onClick : () -> Unit){
     IconButton(
-        onClick = {
-            navController.navigate("Notifications")
-            //selectedItem = NavItems.PROFILE_ITEM
-        }) {
+        onClick = onClick) {
         Icon(
             Icons.Outlined.Notifications,
             contentDescription = "Notifications"
@@ -21,3 +18,5 @@ fun NotificationButton(navController : NavController){
     }
 
 }
+
+//     navController.navigate("Notifications")

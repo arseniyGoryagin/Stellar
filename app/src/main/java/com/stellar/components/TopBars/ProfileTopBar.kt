@@ -18,7 +18,7 @@ import com.stellar.components.Buttons.NotificationButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileTopBar(navController : NavController){
+fun ProfileTopBar(onNotificationClick : () -> Unit, onBackClick : () -> Unit){
 
     val searchExtended by remember { mutableIntStateOf(0) }
 
@@ -33,12 +33,12 @@ fun ProfileTopBar(navController : NavController){
             Text(text = "My Profile")
         },
         navigationIcon = {
-            BackButton(navController = navController)
+            BackButton(onClick = onBackClick)
         },
         actions={
 
             // settings button
-            NotificationButton(navController)
+            NotificationButton(onClick = onNotificationClick)
         }
     )
 

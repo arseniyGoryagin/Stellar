@@ -8,14 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 
 @Composable
-fun SearchButton(navController: NavController){
+fun SearchButton(onClick : () -> Unit){
     IconButton(
-        onClick = {
-            navController.navigate("Search/${null}")
-        }) {
+        onClick = onClick) {
         Icon(
             Icons.Outlined.Search,
             contentDescription = null
         )
     }
 }
+
+//navController.navigate("Search/${null}"

@@ -93,7 +93,7 @@ fun ChangePasswordContent(navController: NavController,  viewModel: ChangePasswo
 
     Scaffold(
 
-        topBar = { GenericTopBar(navController = navController, name = "Password")},
+        topBar = { GenericTopBar(onBackClick = {navController.navigateUp()}, name = "Password")},
         content = { innerPadding ->
 
 

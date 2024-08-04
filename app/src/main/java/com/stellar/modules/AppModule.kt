@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.stellar.api.PlatziApi
 import com.stellar.data.Repository
+import com.stellar.data.datastore.UserStore
 import com.stellar.data.db.Db
 import dagger.Module
 import dagger.Provides
@@ -25,12 +26,21 @@ import kotlin.contracts.contract
 @InstallIn(SingletonComponent::class)
 class AppModule {
 
+    @Provides
+    @Singleton
+    fun provideUserStore(@ApplicationContext context: Context) : UserStore{
+        return UserStore(context)
 
+    }
 
     @Provides
     @Singleton
-    fun provideRepo(api : PlatziApi, @ApplicationContext context: Context, db : Db) : Repository {
-        return Repository(api, context= context,  db = db)
+    fun provideRepo(api : PlatziApi, @ApplicationContext context: Context, db : Db, userStore: UserStore) : Repository {
+        return Repository(
+            userDataStore = userStore,
+            platziApi = api,
+            context= context,
+            db = db)
     }
 
 

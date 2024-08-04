@@ -22,7 +22,7 @@ import com.stellar.components.Buttons.NotificationButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductTopBar(navController : NavController, modifier: Modifier){
+fun ProductTopBar( onBackClick : () -> Unit, onCartClick : () -> Unit,  modifier : Modifier = Modifier){
     CenterAlignedTopAppBar(
         modifier = modifier,
         colors = TopAppBarDefaults.topAppBarColors(
@@ -32,11 +32,10 @@ fun ProductTopBar(navController : NavController, modifier: Modifier){
             Text(text = "Product Detail")
         },
         navigationIcon = {
-            BackButton(navController = navController)
+            BackButton(onClick = onBackClick)
         },
         actions={
-            // settings button
-            IconButton(onClick = { navController.navigate("Cart")  }) {
+            IconButton(onClick = onCartClick) {
                 Icon(painterResource(id = R.drawable.bag_personal_outline), contentDescription = null )
             }
         }

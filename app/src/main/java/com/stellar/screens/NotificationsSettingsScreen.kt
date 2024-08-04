@@ -33,7 +33,7 @@ import com.stellar.ui.theme.Grey241
 @Composable
 fun NotificationsSettingsScreen(navController : NavController){
     Scaffold(
-        topBar = { GenericTopBar(name = "Notifications",navController = navController) },
+        topBar = { GenericTopBar(name = "Notifications", onBackClick = {navController.navigateUp()}) },
         content = { innerPadding ->
             Box(
                 modifier =

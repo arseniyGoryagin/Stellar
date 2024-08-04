@@ -23,7 +23,7 @@ import com.stellar.components.Buttons.SearchButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoriteTopBar(navController : NavController){
+fun FavoriteTopBar(onNotificationClick : () -> Unit){
 
 
     CenterAlignedTopAppBar(
@@ -38,10 +38,12 @@ fun FavoriteTopBar(navController : NavController){
         navigationIcon = {
         },
         actions={
-            NotificationButton(navController)
+            NotificationButton(onClick = onNotificationClick )
         }
     )
 
 
 
 }
+
+//navController : NavController

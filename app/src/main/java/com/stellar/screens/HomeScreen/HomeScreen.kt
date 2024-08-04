@@ -22,10 +22,13 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -57,36 +60,102 @@ import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.CartProductsState
 import com.stellar.viewmodels.HomeViewModel
+import com.stellar.viewmodels.UserState
 import com.stellar.viewmodels.UserViewModel
+
 
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun HomeScreen(navController: NavController,  viewmodel: HomeViewModel, userViewModel: UserViewModel) {
+fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel, userViewModel: UserViewModel) {
 
     SideEffect {
         Log.d("RecompositionTracker", "TrackableComposable recomposed")
     }
 
+
+
+    val userState = userViewModel.userState
+    val newArivalsState = homeViewModel.newArrivalsState
+    val categoriesState = homeViewModel.categoriesState
+
     var selectedTab by remember {
         mutableIntStateOf(0)
     }
 
+    var onNotifications = {
+        navController.navigate("Notifications")
+    }
+
+    // TODO
+    var onSearch = {
+        navController.navigate("Search/${null}")
+    }
+
+    var onProfileClick = {
+        navController.navigate("My Profile")
+    }
+
+    var onUserStateError ={
+        println("Going home......")
+        navController.navigate("Welcome")
+    }
+
+    var onSeeAllProducts = {
+        navController.navigate("Search/${null}"){
+            launchSingleTop = true
+        }
+    }
+
+
+    var onProductClick = {itemId  : Int ->
+        navController.navigate("Product/$itemId")
+    }
+
+    var onProductFavorite = { id : Int ->
+           homeViewModel.addFavorite(id)
+    }
+
+    var onProductDeFavorite = { id : Int ->
+        homeViewModel.removeFavorite(id)
+    }
+
+    println("UsersState === " + userState)
 
     Scaffold(
         topBar = {
-            HomeTopBar(navController = navController, userViewModel)
+            when(userState){
+                is UserState.Error -> {
+                    onUserStateError()
+                }
+                UserState.Idle -> {
+                    "Updating user data"
+                    userViewModel.updateUserData()
+                    CircularProgressIndicator()
+                }
+                UserState.Loading -> { CircularProgressIndicator()}
+                is UserState.Success -> {
+                    HomeTopBar(
+                        onSearch = onSearch,
+                        onNotifications = onNotifications,
+                        onProfileClick = onProfileClick,
+                        userImg = userState.userData.avatar,
+                        userName = userState.userData.name
+                        )
+                }
+            }
+
 
                  },
         content = { innerPadding ->
-                Box(modifier = Modifier.padding(innerPadding)){
+
+                val tabs = listOf("Home", "Category")
 
 
-                    val tabs = remember { listOf("Home", "Category") }
-
-                    Column(
+                Column(
 
                         modifier = Modifier
+                            .padding(innerPadding)
                             .fillMaxSize()
                     ){
                         TabRow(
@@ -114,59 +183,22 @@ fun HomeScreen(navController: NavController,  viewmodel: HomeViewModel, userView
                         }
                         AnimatedContent(targetState = selectedTab) { tabIndex ->
                             when(tabIndex){
-                                0 -> HomeContent(viewmodel, navController)
-                                1 -> CategoryContent(viewmodel)
+                                0 -> HomeContent(
+                                    onSeeAll = onSeeAllProducts,
+                                    onProductClick = onProductClick,
+                                    onProductFavorite = onProductFavorite,
+                                    onProductDeFavorite = onProductDeFavorite,
+                                    newArrivalsState = newArivalsState)
+                                1 -> CategoryContent(
+                                    categoriesState = categoriesState
+                                )
                             }
                         }
                     }
-
-
-                }
         }
     )
-
-
-
-
-
-
 }
 
-
-
-/*
-
-
-
-
-
-
-
-
-
-
-    Scaffold(
-        topBar = { HomeTopBar(navController = navController) },
-        content = { innerPadding ->
-                Box(modifier = Modifier.padding(innerPadding)){
-
-
-
-
-
-                }
-        },
-
-
-
-        bottomBar = { BottomNavigationBar(navController = navController) }
-    )
-
-
-
-
-
- */
 
 
 

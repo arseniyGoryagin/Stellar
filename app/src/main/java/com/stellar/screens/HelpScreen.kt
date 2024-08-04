@@ -36,7 +36,7 @@ import com.stellar.ui.theme.Grey241
 @Composable
 fun HelpScreen(navController : NavController){
     Scaffold (
-        topBar = { GenericTopBar(navController = navController, name = "Help & Support") },
+        topBar = { GenericTopBar(onBackClick = {navController.navigateUp()}, name = "Help & Support") },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 HelpContent()

@@ -33,19 +33,22 @@ import okhttp3.internal.connection.RouteException
 
 
 @Composable
-fun SearchItemCard(title : String, searches : String, imgSrc : String, modifier: Modifier = Modifier, onClick : () -> Unit, trailingIcon : @Composable () -> Unit){
+fun SearchItemCard(
+    productId : Int,
+    title : String,
+    searches : String,
+    imgSrc : String,
+    modifier: Modifier = Modifier,
+    onClick : (Int) -> Unit,
+    trailingIcon : @Composable () -> Unit){
 
 
-
-    Row {
-
-    }
     Row(
 
         //horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = modifier.clickable { onClick() }
+        modifier = modifier.clickable { onClick(productId) }
 
     ) {
         Row(

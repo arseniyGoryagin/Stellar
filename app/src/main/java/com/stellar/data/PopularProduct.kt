@@ -1,6 +1,6 @@
 package com.stellar.data
 
-import com.stellar.data.db.entetities.ProductEntity
+import com.stellar.data.types.Product
 
 class PopularProduct(
     val product : Product,

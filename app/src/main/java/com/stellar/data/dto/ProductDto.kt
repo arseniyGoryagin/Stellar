@@ -1,7 +1,7 @@
 package com.stellar.data.dto
 
 import com.stellar.data.Category
-import com.stellar.data.Product
+import com.stellar.data.types.Product
 import com.stellar.data.db.entetities.ProductEntity
 import kotlinx.serialization.Serializable
 
@@ -32,7 +32,6 @@ data class ProductDto(
                 baseProduct.description,
                 baseProduct.category,
                 baseProduct.images,
-                favorite
                 )
 
 

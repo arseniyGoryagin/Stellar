@@ -1,71 +1,69 @@
 package com.stellar.screens.SearchScreen
 
-import android.app.appsearch.AppSearchManager.SearchContext
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.clearCompositionErrors
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.os.persistableBundleOf
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.stellar.components.Buttons.BackButton
 import com.stellar.components.Buttons.NotificationButton
-import com.stellar.components.TopBars.SearchInput
-import com.stellar.components.TopBars.SearchToopBar
-import com.stellar.components.columns.ItemColumn
+import com.stellar.components.Input.SearchInput
 import com.stellar.components.columns.ItemColumnPaginated
-import com.stellar.components.items.BigItemCard
-import com.stellar.components.items.SearchItemCard
-import com.stellar.components.screens.ErrorScreen
-import com.stellar.components.screens.LoadingScreen
-import com.stellar.data.Product
-import com.stellar.screens.SearchScreen.components.LatestSearchesTextRow
-import com.stellar.screens.SearchScreen.components.SearchTagRow
+import com.stellar.data.types.FavoriteProductWithProduct
+import com.stellar.data.types.Product
 import com.stellar.ui.theme.Grey170
-import com.stellar.viewmodels.PopularSearches
+import com.stellar.viewmodels.SearchFilter
 import com.stellar.viewmodels.SearchViewModel
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 
 
 @Composable
 fun SearchScreen(viewModel: SearchViewModel, navController: NavController, searchString : String?){
 
 
-    searchString?.let {
-        LaunchedEffect(Unit) {
-            viewModel.getProducts(searchString)
-        }
+
+    val latestSearches = viewModel.latestSearches
+    val popularProductsState = viewModel.popularProductsState
+    val productsFlow = viewModel.products
+    val products : LazyPagingItems<FavoriteProductWithProduct>? = viewModel.products?.collectAsLazyPagingItems()
+
+    val currentFilter = viewModel.searchFilter
+
+
+
+    var showFilterBottomSheet by remember {
+        mutableStateOf(false)
+    }
+
+    val currentSearchString by remember {
+        mutableStateOf(searchString ?: "")
     }
 
     var isActive by remember {
@@ -77,52 +75,119 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController, searc
     }
 
 
-    val onSearch = remember(viewModel){
-        { it : String ->
+    LaunchedEffect(Unit) {
+        if(isActive) {
+            viewModel.getProducts(currentSearchString)
+        }
+    }
+
+    LaunchedEffect(key1 = currentFilter) {
+        viewModel.getProducts(currentSearchString)
+    }
+
+
+
+    val onSearch = { it : String ->
             viewModel.saveSearch(it)
             viewModel.getProducts(it)
-
-
-        }
     }
-    val onValueChanged = remember(viewModel) {
-        { it : String ->
-            println("Getting products === " + it)
+
+    val onValueChanged = { it : String ->
             viewModel.getProducts(it)
-        }
     }
+
+
+    val onFocus = { focus : Boolean ->
+        if(focus){isActive = true}
+    }
+
+    val onFilter = {
+        showFilterBottomSheet = true
+    }
+
+    val onNotificationPress = {
+        navController.navigate("Notifications")
+    }
+
+    val onBackButtonPress = {
+        navController.navigateUp()
+        Unit
+    }
+
+    val onClearLatestSearches = {
+
+    }
+
+    val onPopularSearchClick = { id : Int ->
+        navController.navigate("Product/${id}")
+    }
+
+    val onRemoveSuggestion = { sugg : String ->
+
+    }
+
+    val onSearchSuggestionClick = { sugg : String ->
+
+    }
+
+
+    val onSearchItemClick = { id : Int ->
+        navController.navigate("Product/${id}")
+    }
+
+    val onProductFavorite = { id : Int ->
+
+    }
+
+    val onProductDeFavorite = { id : Int ->
+
+    }
+
+
+    val onFilterDismiss = { filter : SearchFilter->
+        viewModel.updateFilter(filter)
+        showFilterBottomSheet = false
+    }
+
 
 
 
     Scaffold (
         topBar =  {
             SearchTopBar(
-                navController = navController,
-                onFilter = {},
-                onFocuse = {
-                    if(it){isActive = true}
-                },
+                onFilter = onFilter,
+                onFocus = onFocus,
                 onSearch = onSearch,
                 onValueChanged = onValueChanged,
+                onBackButton = onBackButtonPress,
+                onNotificationClick = onNotificationPress,
                 searchString = searchString
                 )
         },
     content = {padding ->
         Box(modifier = Modifier.padding(padding)) {
+
             if (!isActive) {
-                SearchSuggestionsContent(viewModel, navController)
+                SearchSuggestionsContent(
+                    latestSearches = latestSearches,
+                    popularProductsState = popularProductsState,
+                    onClearLatestSearches = onClearLatestSearches,
+                    onPopularSearchClick = onPopularSearchClick,
+                    onRemoveSearchSuggestion = onRemoveSuggestion,
+                    onSearchSuggestionClick = onSearchSuggestionClick
+                )
             } else {
-
-                val flow = viewModel.products?.collectAsState(initial = PagingData.empty())
-                
-                
-                val products : LazyPagingItems<Product>? = viewModel.products?.collectAsLazyPagingItems()
-                println("Products value \n" + viewModel.products)
-                println("Actual products \nk" + products?.loadState)
-
-                SearchContent(products, onItemClick = {
-
-                })
+                SearchContent(
+                    products = products,
+                    onItemClick = onSearchItemClick,
+                    onFavorite = onProductFavorite,
+                    onDeFavorite = onProductDeFavorite
+                    )
+            }
+            if(showFilterBottomSheet){
+                FilterBottomSheet(
+                    onDismiss = onFilterDismiss,
+                    currentSearchFilter = currentFilter)
             }
         }
     }
@@ -135,7 +200,10 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController, searc
 
 
 @Composable
-fun SearchContent(products: LazyPagingItems<Product>?, onItemClick :(Int) -> Unit){
+fun SearchContent(products: LazyPagingItems<FavoriteProductWithProduct>?,
+                  onItemClick :(Int) -> Unit,
+                  onFavorite : (Int) -> Unit,
+                  onDeFavorite : (Int) -> Unit){
 
 
 
@@ -152,9 +220,11 @@ fun SearchContent(products: LazyPagingItems<Product>?, onItemClick :(Int) -> Uni
             )
         }
     } else {
-        ItemColumnPaginated(products = products, onFavorite = { /*TODO*/ },
+        ItemColumnPaginated(
+            products = products,
+            onFavorite = onFavorite,
+            onDeFavorite = onDeFavorite,
             onClick = onItemClick,
-            onDeFavorite = {},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -165,14 +235,25 @@ fun SearchContent(products: LazyPagingItems<Product>?, onItemClick :(Int) -> Uni
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchTopBar(navController : NavController, searchString : String?, onFilter : () -> Unit, onFocuse : (Boolean) -> Unit, onSearch : (String) -> Unit, onValueChanged : (String) -> Unit){
+fun SearchTopBar( searchString : String?,
+                  onFocus : (Boolean) -> Unit,
+                  onSearch : (String) -> Unit,
+                  onValueChanged : (String) -> Unit,
+                  onBackButton : () -> Unit,
+                  onNotificationClick : () -> Unit,
+                  onFilter: () -> Unit){
 
-    var  searchInput by remember {
-        if(searchString != null){
-            mutableStateOf(searchString)
-        }else{
-        mutableStateOf("")
-        }
+
+    var onSearch = { searchString : String->
+        onSearch(searchString)
+    }
+
+    var onFocusChanged = { focus : FocusState ->
+        onFocus(focus.isFocused)
+    }
+
+    var onValueChanged ={ search : String->
+        onValueChanged(search)
     }
 
     TopAppBar(
@@ -183,29 +264,33 @@ fun SearchTopBar(navController : NavController, searchString : String?, onFilter
             SearchInput(
                 placeholder = "Cheap Bags",
                 onFilter = onFilter,
-                value = searchInput,
-                onValueChanged =
-                { search ->
-                    onValueChanged(search)
-                    searchInput = search
-                },
-                onFocusChanged = {it
-                    onFocuse(it.isFocused)
-                },
-                onSearch = { search ->
-                    onSearch(search)
-                }
+                value = searchString,
+                onValueChanged = onValueChanged,
+                onFocusChanged = onFocusChanged,
+                onSearch = onSearch
 
             )
         },
         navigationIcon = {
-            BackButton(navController = navController)
+            IconButton(
+                onClick = onBackButton) {
+                Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+            }
         },
         actions={
-            NotificationButton(navController)
+            IconButton(
+                onClick = onNotificationClick) {
+                Icon(
+                    Icons.Outlined.Notifications,
+                    contentDescription = "Notifications"
+                )
+            }
         }
     )
 }
+
+
+
 
 
 

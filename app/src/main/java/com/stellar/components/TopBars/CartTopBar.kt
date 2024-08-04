@@ -17,7 +17,7 @@ import com.stellar.components.Buttons.BackButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartTopBar(navController : NavController, modifier: Modifier = Modifier){
+fun CartTopBar(onBackClick : () -> Unit, modifier: Modifier = Modifier){
     CenterAlignedTopAppBar(
         modifier = modifier,
         colors = TopAppBarDefaults.topAppBarColors(
@@ -27,7 +27,7 @@ fun CartTopBar(navController : NavController, modifier: Modifier = Modifier){
             Text(text = "My Cart")
         },
         navigationIcon = {
-            BackButton(navController = navController)
+            BackButton(onClick = onBackClick)
         },
     )
 

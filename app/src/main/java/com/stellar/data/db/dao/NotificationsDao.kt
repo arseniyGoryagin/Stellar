@@ -1,19 +1,25 @@
 package com.stellar.data.db.dao
 
+import androidx.compose.ui.geometry.Offset
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.stellar.data.db.entetities.Notification
+import com.stellar.data.datastore.Notifications
+import com.stellar.data.db.entetities.NotificationEntity
 
 
 @Dao
 interface NotificationsDao {
 
     @Insert
-    fun insertNotification(notification : Notification)
+    suspend fun insertNotification(notification : NotificationEntity)
+
+    @Query("Select * from notifications_table order by id LIMIT :limit OFFSET :offset ")
+    suspend fun getNotifications(offset: Int, limit : Int ) : List<NotificationEntity>
 
 
-    //@Query("Select * from notifications_table ORDER by id LIMIT :amount OFFSET :offset ")
-    //fun getNotifications(amount : Int, offset : Int) :  List<Notification>
+    @Query("Delete from notifications_table")
+    suspend fun clearAllNotifications()
+
 
 }

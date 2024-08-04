@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,20 +17,18 @@ import com.stellar.viewmodels.HomeViewModel
 
 
 @Composable
-fun CategoryContent(viewmodel : HomeViewModel){
-    
-    val categoryItems = viewmodel.categoriesState
-    
+fun CategoryContent(categoriesState : CategoriesState){
 
-    when(categoryItems){
-            is CategoriesState.Success -> CategoryCards(categories = categoryItems.categories)
+
+    when(categoriesState){
+            is CategoriesState.Success -> CategoryCards(categories = categoriesState.categories)
             CategoriesState.Error -> ErrorScreen(message = "Error oading categories")
             CategoriesState.Loading -> LoadingScreen() }
 }
 
 @Composable 
 fun CategoryCards(categories : List<Category>){
-    Column(
+    LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
@@ -37,10 +36,9 @@ fun CategoryCards(categories : List<Category>){
             .padding(top = 16.dp)
             .padding(horizontal = 16.dp)
     ) {
-        categories.forEach { category ->
+        items(categories.size){ index ->
+            val category = categories[index]
             CategoryCard(name = category.name, imageSrc = category.image!!, onClick = {})
         }
     }
-    
-    
 }

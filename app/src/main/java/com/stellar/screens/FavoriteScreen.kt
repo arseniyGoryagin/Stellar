@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,6 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.stellar.R
@@ -46,139 +49,250 @@ import com.stellar.components.items.BigItemCard
 import com.stellar.components.screens.ErrorScreen
 import com.stellar.components.screens.LoadingScreen
 import com.stellar.constants.NavItems
+import com.stellar.data.types.FavoriteProductWithProduct
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.FavoriteProductsState
 import com.stellar.viewmodels.FavoritesViewModel
 
 
+
+sealed interface SortBY{
+    object Cheapest : SortBY
+    object MostPopular : SortBY
+    object All : SortBY
+    object Latest : SortBY
+}
+
+
+object selecetdIndex {
+
+    const val ALL = 0
+    const val LATEST = 1
+    const val MOSTPOPULAR = 2
+    const val CHEAPEST = 3
+
+}
+
+
 @Composable
 fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController) {
 
 
-    val scrollState = rememberScrollState()
+
+    var sortBy : SortBY by remember {
+        mutableStateOf(SortBY.All)
+    }
+
+    val favoriteProducts : FavoriteProductsState = viewModel.favoriteProductsState
+
+    LaunchedEffect(true) {
+        viewModel.updateFavoriteProducts()
+    }
+
+
+    var searchString by remember {
+        mutableStateOf("")
+    }
+
+    var onSearchStringChanged = { newSearchString: String ->
+        searchString = newSearchString
+    }
+
+    var onNewSelected = { index : Int ->
+       sortBy =  when(index){
+           selecetdIndex.ALL -> SortBY.All
+           selecetdIndex.LATEST -> SortBY.Latest
+           selecetdIndex.CHEAPEST -> SortBY.Cheapest
+           selecetdIndex.MOSTPOPULAR -> SortBY.MostPopular
+           else -> SortBY.All
+       }
+    }
+
+    var onFavorite ={ id : Int ->
+        viewModel.addFavorite(id)
+
+    }
+
+    var onDeFavorite ={ id : Int  ->
+        viewModel.removeFavorite(id = id)
+    }
+
+    var onItemClick = { id : Int ->
+        navController.navigate("Product/$id")
+    }
 
 
     Scaffold(
-        topBar = { FavoriteTopBar(navController = navController) },
+        topBar = { FavoriteTopBar(onNotificationClick = {navController.navigate("Notifications")}) },
         content = { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding)){
-
-                val buttons = listOf(
-                    "All",
-                    "Latest",
-                    "Most Popular",
-                    "Cheapest"
-                )
-
-                var selectedButton by remember {
-                    mutableStateOf("All")
-                }
-
-                val favoriteProducts : FavoriteProductsState = viewModel.favoriteProductsState
-
-                LaunchedEffect(true) {
-                    viewModel.updateFavoriteProducts()
-                }
-
-
-                var searchString by remember {
-                    mutableStateOf("")
-                }
-
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(innerPadding)
                         .padding(horizontal = 16.dp)
-                )
-                {
+                ){
 
-                    SearchInput(
-                        placeholder = "Search something",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp, bottom = 16.dp),
-                        onValueChange = {searchString = it}
-                        )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .horizontalScroll(scrollState),
-                    ) {
-                        buttons.forEachIndexed(){ index, buttonName ->
-                            Button(
-                                onClick = {
-                                    selectedButton = buttonName
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if(selectedButton == buttonName){
-                                        PurpleFont}else{Color.White},
-                                    contentColor = if(selectedButton == buttonName){
-                                        Color.White}else{
-                                        Grey170},
-                                ),
-                                border = if(selectedButton != buttonName){BorderStroke(1.dp, Grey170)}else{null}
-                            ) {
-                                Text(text = buttonName)
-                            }
-                        }
-
-                    }
+                    SearchHeader(
+                        onSearchChanged = onSearchStringChanged,
+                        onNewSelected = onNewSelected)
 
                     when(favoriteProducts){
                         is FavoriteProductsState.Success ->
                         {
                             var  products = favoriteProducts.products
-
-
-                            if(searchString.isNotEmpty()){
-                                products = products.filter {
-                                    it.title.contains(searchString, ignoreCase = true)
-                                }
-                            }
-
-
-                            when(selectedButton){
-                                "Cheapest" -> {
-                                    products = products.sortedBy {
-                                        it.price
-                                    }
-
-                                }
-                                "Most Popular" ->{
-                                    products = products.sortedBy {
-                                        // fake just emulating api doe not provide
-                                        it.description
-                                    }
-                                }
-                            }
-
-
-                            ItemColumn(products = products, onFavorite = {
-                            viewModel.addFavorite(it)
-                        },
-                            onClick = { id ->
-                                navController.navigate("Product/$id")
-                            },
-                            onDeFavorite = {
-                                viewModel.removeFavorite(it)
-                            })}
+                            FavoriteContent(products,
+                                sortBy = sortBy,
+                                onFavorite = onFavorite,
+                                onDeFavorite = onDeFavorite,
+                                onItemClick = onItemClick,
+                                searchString = searchString
+                            )
+                        }
                         FavoriteProductsState.Error -> ErrorScreen(message = "Error loading favorite products")
                         FavoriteProductsState.Loading -> LoadingScreen()
                         else -> {}
                     }
 
                 }
-
-
-
-            }
         }
     )
 
+
+
+}
+
+
+@Composable
+fun SearchHeader(onSearchChanged : (String) -> Unit, onNewSelected :(Int) -> Unit ){
+
+
+    val scrollState = rememberScrollState()
+
+
+    val buttons = listOf(
+        "All",
+        "Latest",
+        "Most Popular",
+        "Cheapest"
+    )
+
+    var selectedButton by remember {
+        mutableStateOf("All")
+    }
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+
+
+        SearchInput(
+            placeholder = "Search something",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 16.dp),
+            onValueChange = {
+                onSearchChanged(it)
+            }
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .padding(8.dp)
+                .horizontalScroll(scrollState),
+        ) {
+            buttons.forEachIndexed() { index, buttonName ->
+                Button(
+                    onClick = {
+                        selectedButton = buttonName
+                        onNewSelected(index)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedButton == buttonName) {
+                            PurpleFont
+                        } else {
+                            Color.White
+                        },
+                        contentColor = if (selectedButton == buttonName) {
+                            Color.White
+                        } else {
+                            Grey170
+                        },
+                    ),
+                    border = if (selectedButton != buttonName) {
+                        BorderStroke(1.dp, Grey170)
+                    } else {
+                        null
+                    }
+                ) {
+                    Text(text = buttonName)
+                }
+            }
+
+        }
+    }
+
+}
+
+
+
+@Composable
+fun FavoriteContent(products  : List<FavoriteProductWithProduct>, sortBy : SortBY, searchString : String?, onFavorite : (Int) -> Unit, onDeFavorite : (Int) -> Unit, onItemClick :(Int) -> Unit ){
+
+    var filteredProducts = products
+
+    if(products.isEmpty()){
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Text(
+                text = stringResource(id = R.string.noFavoriteProductsText),
+                color = Grey170,
+                textAlign = TextAlign.Center
+            )
+        }
+
+    }
+    else {
+
+
+        if (searchString != null) {
+            filteredProducts = products.filter {
+                it.product.title.contains(searchString, ignoreCase = true)
+            }
+        }
+
+
+        when (sortBy) {
+            SortBY.All -> {}
+            SortBY.Cheapest -> {
+                filteredProducts = products.sortedBy {
+                    it.product.price
+                }
+
+            }
+            SortBY.Latest -> {}
+            SortBY.MostPopular -> {
+                filteredProducts = products.sortedBy {
+                    // fake just emulating api doe not provide
+                    it.product.description
+                }
+            }
+        }
+
+
+        ItemColumn(products = filteredProducts,
+            onFavorite = onFavorite,
+            onDeFavorite = onDeFavorite,
+            onClick = onItemClick,)
+    }
 
 
 }

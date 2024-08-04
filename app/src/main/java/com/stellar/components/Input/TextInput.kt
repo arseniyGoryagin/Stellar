@@ -7,6 +7,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,13 +22,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.AddingNewCardState
+import java.lang.Error
 
 @Composable
-fun TextInput(name : String, startValue : String = "", placeholder :String = "", modifier: Modifier = Modifier, icon : @Composable () -> Unit, trailingIcon : @Composable () -> Unit, onValueChange : (String) -> Unit, visibleText : Boolean){
+fun TextInput(name : String, startValue : String = "",
+              placeholder :String = "",
+              icon : @Composable () -> Unit, trailingIcon : @Composable () -> Unit,
+              onValueChange : (String) -> Unit, visibleText : Boolean,
+              error: Boolean = false,
+              enabled : Boolean = true,
+              modifier: Modifier = Modifier,){
+
+
 
     var inputValue by remember {
         mutableStateOf(startValue)
     }
+
+    var onValueChange = { newVal : String ->
+        inputValue = newVal
+        onValueChange(newVal)
+    }
+
+    val containerColor = if(error){Color.Red}else{Color.Transparent}
 
 
     Column(modifier = modifier) {
@@ -37,6 +55,7 @@ fun TextInput(name : String, startValue : String = "", placeholder :String = "",
         )
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
+            enabled = enabled,
             value = inputValue,
             placeholder = { Text(placeholder) },
             label = {},
@@ -46,21 +65,19 @@ fun TextInput(name : String, startValue : String = "", placeholder :String = "",
                 unfocusedContainerColor = Color(245, 245, 245),
                 focusedPlaceholderColor = Grey170,
                 unfocusedPlaceholderColor = Grey170,
-                unfocusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = containerColor,
                 focusedIndicatorColor = PurpleFont,
                 focusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
                 unfocusedLeadingIconColor = if(inputValue.length > 0) PurpleFont else Grey170,
             ),
-            onValueChange = {
-                inputValue = it
-                onValueChange(it)
-                            },
+            onValueChange = onValueChange,
             shape = RoundedCornerShape(20.dp),
             leadingIcon = icon,
             trailingIcon = trailingIcon,
             visualTransformation = if(visibleText) VisualTransformation.None else PasswordVisualTransformation()
 
         )
+
     }
 
 }

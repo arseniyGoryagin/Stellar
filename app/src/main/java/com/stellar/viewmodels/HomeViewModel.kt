@@ -6,8 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stellar.data.Category
-import com.stellar.data.Product
+import com.stellar.data.types.Product
 import com.stellar.data.Repository
+import com.stellar.data.types.FavoriteProductWithProduct
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -17,7 +18,7 @@ import javax.inject.Inject
 
 
 sealed interface NewArrivalsState {
-    data class Success(val products : List<Product>): NewArrivalsState
+    data class Success(val products : List<FavoriteProductWithProduct>): NewArrivalsState
     object Error : NewArrivalsState
     object Loading : NewArrivalsState
 }
@@ -67,31 +68,37 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
     }
 
     fun addFavorite(id : Int){
-        val updatedProducts : List<Product> = (newArrivalsState as NewArrivalsState.Success).products.map {
-            if(id == it.id){
-                it.favorite = true
+        viewModelScope.launch {
+            val updatedProducts : List<FavoriteProductWithProduct> = (newArrivalsState as NewArrivalsState.Success).products.map {
+                if(id == it.product.id){
+                    it.favorite = true
+                }
+                it
             }
-            it
+
+            newArrivalsState = NewArrivalsState.Success(updatedProducts)
+
+            repository.addFavorite(id)
+
         }
-
-        newArrivalsState = NewArrivalsState.Success(updatedProducts)
-
-        repository.addFavorite(id)
     }
 
     fun removeFavorite(id : Int){
 
-        val updatedProducts : List<Product> = (newArrivalsState as NewArrivalsState.Success).products.map {
-            if(id == it.id){
-                it.favorite = false
-            }
-            it
+        viewModelScope.launch {
+            val updatedProducts: List<FavoriteProductWithProduct> =
+                (newArrivalsState as NewArrivalsState.Success).products.map {
+                    if (id == it.product.id) {
+                        it.favorite = false
+                    }
+                    it
+                }
+
+
+            newArrivalsState = NewArrivalsState.Success(updatedProducts)
+
+            repository.removeFavorite(id)
         }
-
-
-        newArrivalsState = NewArrivalsState.Success(updatedProducts)
-
-        repository.removeFavorite(id)
 
     }
 

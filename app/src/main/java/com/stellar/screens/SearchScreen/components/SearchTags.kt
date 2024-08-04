@@ -25,15 +25,17 @@ import com.stellar.ui.theme.Grey170
 
 
 @Composable
-fun SearchTagRow(onClear : (String) -> Unit, onClick : (String) -> Unit, searches : List<String>, modifier: Modifier){
-
+fun SearchTagRow(
+    onClear : (String) -> Unit,
+    onClick : (String) -> Unit,
+    searches : List<String>,
+    modifier: Modifier){
 
     Row( horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
         searches.forEach { search ->
             InputChip(
                 selected = false,
-                onClick = { onClick(search)
-                },
+                onClick = { onClick(search) },
                 label = { Text(text = search,) },
                 trailingIcon = {
                     IconButton(onClick = { onClear(search) }) {

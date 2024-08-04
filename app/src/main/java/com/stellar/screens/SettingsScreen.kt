@@ -50,27 +50,36 @@ import com.stellar.components.TopBars.SettingsTopBar
 import com.stellar.R
 import com.stellar.ui.theme.Grey241
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.SettingsViewModel
 import com.stellar.viewmodels.UserViewModel
 
 
 @Composable
-fun SettingsScreen(navController : NavController, userViewModel: UserViewModel){
+fun SettingsScreen(navController : NavController, viewmodel : SettingsViewModel){
 
 
     var showAlertDialog by remember{
         mutableStateOf(false)
     }
 
-
-    val onLogOut = remember(showAlertDialog) {
-        {
-            showAlertDialog = !showAlertDialog
-        }
+    val onLogOutButtonClick = {
+        showAlertDialog = true
     }
+
+    val onLogOutConfirm = {
+        showAlertDialog = false
+        viewmodel.logOut()
+        navController.navigate("Welcome")
+    }
+
+    val onDismissButton = {
+        showAlertDialog = false
+    }
+
 
     Scaffold(
         topBar = {
-            SettingsTopBar(navController = navController)
+            SettingsTopBar(onBackClick = {navController.navigateUp()})
 
                  },
         content = { innerPadding ->
@@ -125,57 +134,18 @@ fun SettingsScreen(navController : NavController, userViewModel: UserViewModel){
                             painterResource(id = R.drawable.logout),
                             contentDescription = null,
                             tint = Color.Red
-                        )
+                                )
                                },
-                        onClick = onLogOut)
+                        onClick = onLogOutButtonClick)
+
+
                     
                     if(showAlertDialog){
-                        AlertDialog(
-                            title = {
-                                Text(
-                                    "Are you sure you want to log out?",
-                                    textAlign = TextAlign.Center
-                                )
-
-                                    },
-                            onDismissRequest = { showAlertDialog = !showAlertDialog},
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                        userViewModel.logout()
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                                    modifier = Modifier
-                                        .padding(top = 16.dp, start = 24.dp, end = 24.dp)
-                                        .fillMaxWidth()
-                                )
-                                {
-                                    Text("Logout",
-                                        fontSize = 18.sp,
-                                        color = Color.Red
-                                    )
-                                }
-                            },
-                            dismissButton = {
-                                Button(
-                                    onClick = {
-                                        showAlertDialog = false
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
-                                    modifier = Modifier
-                                        .padding(top = 16.dp, start = 24.dp, end = 24.dp)
-                                        .fillMaxWidth()
-                                )
-                                {
-                                    Text(
-                                        "Cancel",
-                                        fontSize = 18.sp,
-                                        color = Color.White
-                                    )
-                                }
-                            },
-                            containerColor = Color.White
-                            )
+                        LogOutDialog(
+                            onDismiss = onDismissButton,
+                            onLogOut = onLogOutConfirm,
+                            onCancel = onDismissButton
+                        )
                     }
                 }
 
@@ -186,6 +156,53 @@ fun SettingsScreen(navController : NavController, userViewModel: UserViewModel){
 
 
 
+
+}
+
+
+@Composable
+fun LogOutDialog(onCancel: () -> Unit, onLogOut : () -> Unit, onDismiss : () -> Unit){
+    AlertDialog(
+        title = {
+            Text(
+                "Are you sure you want to log out?",
+                textAlign = TextAlign.Center
+            )
+        },
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onLogOut,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .padding(top = 16.dp, start = 24.dp, end = 24.dp)
+                    .fillMaxWidth()
+            )
+            {
+                Text("Logout",
+                    fontSize = 18.sp,
+                    color = Color.Red
+                )
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onCancel,
+                colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
+                modifier = Modifier
+                    .padding(top = 16.dp, start = 24.dp, end = 24.dp)
+                    .fillMaxWidth()
+            )
+            {
+                Text(
+                    "Cancel",
+                    fontSize = 18.sp,
+                    color = Color.White
+                )
+            }
+        },
+        containerColor = Color.White
+    )
 
 }
 
@@ -264,5 +281,5 @@ fun LogOutItem(value : String, onClick : () -> Unit,  icon : @Composable () -> U
 @Preview
 @Composable
 fun ss(){
-    SettingsScreen(navController = rememberNavController(), userViewModel = hiltViewModel())
+   // SettingsScreen(navController = rememberNavController(), userViewModel = hiltViewModel())
 }

@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+
+option java_package = "com.stellar.data.datastore";
+option java_multiple_files =true;
+
+
+
+    sealed interface Language{
+object English : Language
+    object Spanish : Language
+    object Chinese : Language
+    object Russian : Language
+    }
+
+data class Notifications(
+    val payment : Boolean,
+    val tracking : Boolean,
+    val completeOrder : Boolean,
+    val notification : Boolean
+    )
+
+message Security{
+  bool faceId = 1;
+  bool rememberPassword = 2;
+  bool touchID = 3;
+}
+message Notifications{
+  bool faceId = 1;
+  bool rememberPassword = 2;
+  bool touchID = 3;
+}
+ enum{
+  bool faceId = 1;
+  bool rememberPassword = 2;
+  bool touchID = 3;
+}
+
+
+
+message Settings {
+
+}

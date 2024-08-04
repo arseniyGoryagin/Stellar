@@ -5,6 +5,8 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.stellar.data.Repository
 import com.stellar.data.db.entetities.ProductEntity
+import com.stellar.data.types.FavoriteProductWithProduct
+import com.stellar.data.types.Product
 
 /*
 @OptIn(ExperimentalPagingApi::class)
@@ -78,14 +80,13 @@ class SearchProductsMediator(
 class SearchProductSource(
     private val repository: Repository,
     val searchQuery : String
-) : PagingSource<Int, ProductEntity>(){
+) : PagingSource<Int, FavoriteProductWithProduct>(){
 
 
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ProductEntity> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, FavoriteProductWithProduct> {
 
         return try {
-
 
             val pageNumber = params.key ?: 1
             val perPage = params.loadSize
@@ -106,7 +107,7 @@ class SearchProductSource(
 
     }
 
-    override fun getRefreshKey(state: PagingState<Int, ProductEntity>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, FavoriteProductWithProduct>): Int? {
         return null
     }
 

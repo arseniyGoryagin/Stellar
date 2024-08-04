@@ -13,5 +13,21 @@
     Vestibulum eu magna massa. Sed fringilla finibus orci id maximus. Suspendisse molestie purus nec urna bibendum semper. Etiam fringilla imperdiet enim, ac semper arcu gravida eu. Nulla eget lacus id enim porta eleifend. Sed porttitor accumsan ante a pharetra. Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean ante metus, mollis vitae est at, iaculis aliquam arcu. Integer lacus dolor, scelerisque eu odio et, lacinia blandit felis. Pellentesque vel gravida diam, eu maximus quam. Fusce accumsan vulputate ligula, cursus porta nunc hendrerit id. Cras efficitur ligula id ullamcorper posuere.
     </string>
 
+
     <string name="helpAndSupportExpandedText">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque viverra ligula dictum libero rhoncus, eu ultrices lectus mollis. Integer ullamcorper, orci eu euismod volutpat, turpis ex ultricies mauris, sed facilisis mi orci at nisl. Sed porta sit amet libero et aliquam. Mauris dignissim libero non semper ultricies. </string>
+
+
+
+
+
+    <string name="add_payment">Add payment method</string>
+
+
+    <!-- Notifications -->
+    <string name="WelcomeNotificationName">Welcome!</string>
+    <string name="WelcomeNotificationDescription">Welcome to Stellar! Have a good time purchasing!</string>
+
+
+
+    <string name="noFavoriteProductsText">No favorite products</string>
 </resources>

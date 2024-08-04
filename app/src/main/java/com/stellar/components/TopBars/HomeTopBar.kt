@@ -29,16 +29,15 @@ import com.stellar.components.Buttons.ProfilePictureButton
 import com.stellar.components.Buttons.SearchButton
 import com.stellar.components.Input.SearchBar
 import com.stellar.constants.NavItems
+import com.stellar.data.User
 import com.stellar.viewmodels.UserState
 import com.stellar.viewmodels.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopBar(navController : NavController, userViewModel: UserViewModel){
+fun HomeTopBar(userName:  String, userImg : String, onSearch : () -> Unit, onNotifications : () -> Unit, onProfileClick : () -> Unit){
 
 
-
-    val userData = userViewModel.userState
 
 
     // TODO
@@ -53,8 +52,20 @@ fun HomeTopBar(navController : NavController, userViewModel: UserViewModel){
         ),
         title= {
 
-                    when(userData){
-                        UserState.Error -> {Text("Error")}
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ){
+                Text(text = "Hi! " + userName,
+                    fontSize = 20.sp)
+                Text("Let's go shopping ",
+                    fontSize = 14.sp)
+            }
+
+                /*
+                    when(userSt ate){
+                        is UserState.Error -> {Text("Error")}
                         UserState.Loading -> {
                             CircularProgressIndicator()
                         }
@@ -71,21 +82,15 @@ fun HomeTopBar(navController : NavController, userViewModel: UserViewModel){
                         }
 
                         UserState.Idle ->CircularProgressIndicator()
-                    }
+                    }*/
 
         },
         navigationIcon = {
-
-            when(userData){
-                UserState.Error -> {Text("Error")}
-                UserState.Loading -> { CircularProgressIndicator()}
-                is UserState.Success -> ProfilePictureButton(imgSrc = userData.userData.avatar, onClick = {navController.navigate("My Profile")})
-                UserState.Idle -> {CircularProgressIndicator()}
-            }
+            ProfilePictureButton(imgSrc = userImg, onClick = onProfileClick)
         },
         actions={
-            SearchButton(navController)
-            NotificationButton(navController)
+            SearchButton(onClick = onSearch)
+            NotificationButton(onClick = onNotifications)
         }
     )
 

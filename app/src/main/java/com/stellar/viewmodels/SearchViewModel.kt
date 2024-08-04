@@ -2,10 +2,8 @@ package com.stellar.viewmodels
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -15,36 +13,42 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import coil.network.HttpException
 import com.stellar.data.PopularProduct
-import com.stellar.data.Product
+import com.stellar.data.types.Product
 import com.stellar.data.Repository
-import com.stellar.data.SearchFilter
 import com.stellar.data.db.entetities.ProductEntity
 import com.stellar.data.sources.SearchProductSource
+import com.stellar.data.types.FavoriteProductWithProduct
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.IOException
 import javax.inject.Inject
 
 
 
 
 
-sealed interface PopularSearches{
+sealed interface PopularProductsState{
 
-    data class Success( val puularSearchProducts : List<PopularProduct>) : PopularSearches
-    object Error : PopularSearches
-    object Loading : PopularSearches
+    data class Success( val popularProducts : List<PopularProduct>) : PopularProductsState
+    object Error : PopularProductsState
+    object Loading : PopularProductsState
 
 }
 
 
 
-
+data class SearchFilter(
+    val categoryId : Int? = null,
+    val priceRange : ClosedFloatingPointRange<Float> = MIN_RANGE..MAX_RANGE,
+    val location : String? = null,
+    val color : String? = null
+){
+    companion object{
+        const val MAX_RANGE : Float= 10000F
+        const val MIN_RANGE: Float = 0F
+    }
+}
 
 
 
@@ -52,10 +56,12 @@ sealed interface PopularSearches{
 @HiltViewModel
 class SearchViewModel@Inject constructor ( private val repository: Repository) : ViewModel() {
 
+
+    // FIlter
     var searchFilter : SearchFilter by mutableStateOf(SearchFilter())
         private set
 
-    var popularSearches : PopularSearches by mutableStateOf(PopularSearches.Loading)
+    var popularProductsState : PopularProductsState by mutableStateOf(PopularProductsState.Loading)
 
     var latestSearches : List<String> by mutableStateOf(emptyList())
 
@@ -65,41 +71,35 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
     var currentSearch by mutableStateOf("")
         private set
 
+    var _pager : Pager<Int, FavoriteProductWithProduct>? = null
+    var products : Flow<PagingData<FavoriteProductWithProduct>>? = _pager?.flow?.cachedIn(viewModelScope)
+
+
 
 
     @OptIn(ExperimentalPagingApi::class)
-    private fun getPager(query: String) : Pager<Int, ProductEntity>{
+    private fun getPager(query: String) : Pager<Int, FavoriteProductWithProduct>{
         return Pager(
             config = PagingConfig(pageSize = 10),
-            pagingSourceFactory = {SearchProductSource(repository = repository, searchQuery = query)})
+            pagingSourceFactory = {
+                SearchProductSource(
+                    repository = repository,
+                    searchQuery = query)
+            })
 
     }
 
-
-    var _pager : Pager<Int, ProductEntity>? = null
-    var products : Flow<PagingData<Product>>? = _pager
-            ?.flow
-            ?.map { pagingData ->
-                pagingData.map { productEmtity ->
-                    Product.toProduct(productEmtity)
-                }
-            }?.cachedIn(viewModelScope)
-
+    private fun getProducts(pager : Pager<Int, FavoriteProductWithProduct>? ) : Flow<PagingData<FavoriteProductWithProduct>>?{
+       return  pager?.flow?.cachedIn(viewModelScope)
+    }
 
 
     fun getProducts(title : String) {
-        println("Getting pridycs......")
         _pager = getPager(title)
-        products = _pager
-            ?.flow
-            ?.map { pagingData ->
-                pagingData.map { productEmtity ->
-                    Product.toProduct(productEmtity)
-                }
-            }
-            ?.cachedIn(viewModelScope)
-        println(products)
+        products = getProducts(_pager)
     }
+
+
 
     init {
         getProducts("")
@@ -129,21 +129,17 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
     fun getPopularSearches(){
          viewModelScope.launch {
              try {
-                 popularSearches = PopularSearches.Loading
+                 popularProductsState = PopularProductsState.Loading
                  val searches = repository.getPopularSearches()
-                 popularSearches =  PopularSearches.Success(searches)
+                 popularProductsState =  PopularProductsState.Success(searches)
              }catch (e : HttpException){
-                 popularSearches = PopularSearches.Error
-
+                 popularProductsState= PopularProductsState.Error
              }
          }
     }
 
 
 
-    fun changeSearchActive(value : Boolean){
-        searchActive = value
-    }
 
 
     private fun getLatestSearches(){
@@ -158,12 +154,8 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
         getLatestSearches()
     }
 
-    fun updatePriceRange(range: ClosedFloatingPointRange<Float>) {
-        searchFilter = searchFilter.copy(
-            price_min = range.start,
-            price_max = range.endInclusive
-        )
-        getProducts(currentSearch)
+    fun updateFilter(filter : SearchFilter) {
+        searchFilter = searchFilter
     }
 
 }

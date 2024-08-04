@@ -15,7 +15,7 @@ import com.stellar.components.Buttons.MapButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GenericTopBar(navController : NavController, name : String){
+fun GenericTopBar(onBackClick : () -> Unit,  name : String){
 
 
         CenterAlignedTopAppBar(
@@ -26,10 +26,10 @@ fun GenericTopBar(navController : NavController, name : String){
                 Text(text = name)
             },
             navigationIcon = {
-                BackButton(navController = navController)
+                BackButton(onClick = onBackClick)
             },
             actions={
-                Icon(Icons.Filled.MoreVert, contentDescription = null)
+              //  Icon(Icons.Filled.MoreVert, contentDescription = null)
             }
         )
 

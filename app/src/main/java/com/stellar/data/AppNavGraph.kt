@@ -25,7 +25,6 @@ import com.stellar.screens.ProductScreen
 import com.stellar.screens.SearchScreen.SearchScreen
 import com.stellar.screens.SecurityScreen
 import com.stellar.screens.SettingsScreen
-import com.stellar.screens.SignInScreen
 import com.stellar.screens.WelcomeScreen
 import com.stellar.viewmodels.CartViewModel
 import com.stellar.viewmodels.ChangePasswordViewModel

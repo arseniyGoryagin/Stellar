@@ -4,9 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.stellar.data.Product
+import androidx.lifecycle.viewModelScope
+import com.stellar.data.types.Product
 import com.stellar.data.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import java.io.IOException
 import javax.inject.Inject
 
@@ -37,7 +39,9 @@ class ProductViewModel@Inject constructor(private val repository: Repository) : 
     }
 
     fun addProductToCart(productId: Int) {
-        repository.addToCart(productId)
+        viewModelScope.launch {
+            repository.addToCart(productId)
+        }
     }
 
 

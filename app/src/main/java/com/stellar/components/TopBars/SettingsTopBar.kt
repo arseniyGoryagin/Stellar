@@ -16,7 +16,7 @@ import com.stellar.ui.theme.Grey241
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsTopBar(navController : NavController){
+fun SettingsTopBar(onBackClick : () -> Unit){
 
     val searchExtended by remember { mutableIntStateOf(0) }
 
@@ -30,7 +30,7 @@ fun SettingsTopBar(navController : NavController){
             Text(text = "Settings")
         },
         navigationIcon = {
-            BackButton(navController = navController)
+            BackButton(onClick = onBackClick)
         },
         actions={
 

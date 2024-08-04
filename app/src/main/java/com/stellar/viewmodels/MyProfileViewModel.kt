@@ -16,7 +16,7 @@ import javax.inject.Inject
 sealed interface SaveDataState{
     object Success : SaveDataState
     object Loading : SaveDataState
-    object Error : SaveDataState
+    data class Error(val e : Exception) : SaveDataState
     object Idle : SaveDataState
 }
 
@@ -42,12 +42,12 @@ class MyProfileViewModel @Inject constructor(private val repository: Repository)
             } catch (e: Exception) {
                 when (e) {
                     is retrofit2.HttpException -> {
-                        val repsonseBody = e.response()?.errorBody()?.string()
-                        println("Error ${e.message()}\n${repsonseBody}")
+                       // val repsonseBody = e.response()?.errorBody()?.string()
+                        //println("Error ${e.message()}\n${repsonseBody}")
                     }
                 }
                 println("Errro " + e.localizedMessage)
-                saveDataState = SaveDataState.Error
+                saveDataState = SaveDataState.Error(e)
 
             }
         }
