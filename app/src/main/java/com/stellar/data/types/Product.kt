@@ -25,7 +25,9 @@
                     price =  productDto.price,
                     description = productDto.description,
                     category = productDto.category,
-                    images = productDto.images,
+                    images = productDto.images.map {
+                        it.replace("\"", "").replace("[", "")
+                    },
                 )
             }
         }

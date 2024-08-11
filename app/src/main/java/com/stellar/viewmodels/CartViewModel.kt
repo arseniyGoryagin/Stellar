@@ -1,5 +1,8 @@
 package com.stellar.viewmodels
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stellar.data.Repository
@@ -21,18 +24,30 @@ sealed interface CartProductsState{
 @HiltViewModel
 class CartViewModel @Inject constructor(private val repository: Repository) : ViewModel(){
 
-    var cartProducts :  CartProductsState = CartProductsState.Loading
+    var cartProducts :  CartProductsState by mutableStateOf(CartProductsState.Loading)
 
+
+    suspend fun fetchCartProducts(){
+        cartProducts = CartProductsState.Loading
+        val products = repository.getCartProducts()
+        cartProducts = CartProductsState.Success(products)
+    }
 
 
     fun updateCartProducts(){
         viewModelScope.launch {
             try {
-                cartProducts = CartProductsState.Loading
-                val products = repository.getCartProducts()
-                cartProducts = CartProductsState.Success(products)
-
-            } catch (e: IOException) {
+               fetchCartProducts()
+            }
+            catch (e : retrofit2.HttpException){
+                repository.clearCart()
+                try {
+                    fetchCartProducts()
+                }catch (e : Exception){
+                    cartProducts = CartProductsState.Error(e)
+                }
+            }
+            catch (e:Exception) {
                 cartProducts = CartProductsState.Error(e)
             }
         }
@@ -51,6 +66,7 @@ class CartViewModel @Inject constructor(private val repository: Repository) : Vi
     }
     fun removeFromCart(itemId : Long){
         viewModelScope.launch {
+
                 repository.removeFromCart(itemId)
 
                 var updatedCartProducts :  MutableList<CartProductWithProduct> = mutableListOf()

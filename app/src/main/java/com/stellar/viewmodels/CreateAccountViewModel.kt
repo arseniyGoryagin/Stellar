@@ -34,7 +34,7 @@ class CreateAccountViewModel @Inject constructor(private val repository: Reposit
             try {
                 registerState = RegisterState.Loading
                 repository.registerUserAndAuth(email = email, password = password, name = name)
-                repository.saveToken()
+               // repository.saveToken()
                 registerState= RegisterState.Success
             }
             catch (e : Exception){
@@ -56,8 +56,6 @@ class CreateAccountViewModel @Inject constructor(private val repository: Reposit
            repository.addNotification(name = name, description = description, icon = icon)
        }
     }
-
-
     fun resetState(){
         registerState = RegisterState.Idle
     }

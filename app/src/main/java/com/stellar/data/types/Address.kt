@@ -8,7 +8,6 @@ data class Address (
     val id : Int,
     val title : String,
     val fullTitle : String,
-    val selected : Boolean
 ){
     companion object{
 
@@ -18,9 +17,10 @@ data class Address (
                 id = addr.id,
                 title = addr.title,
                 fullTitle = addr.fullTitle,
-                selected = addr.selected
             )
         }
+
+
 
 
     }

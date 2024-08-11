@@ -18,7 +18,7 @@ import javax.inject.Inject
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-
+import coil.network.HttpException
 
 
 sealed interface UserState{
@@ -42,15 +42,46 @@ class UserViewModel @Inject constructor(private val repository: Repository) : Vi
 
     var userState : UserState by mutableStateOf(UserState.Idle)
 
+
+
+    suspend fun fetchUserData(){
+        userState = UserState.Loading
+        val userData = repository.getUserData()
+        userState = UserState.Success(userData)
+    }
+
     fun updateUserData(){
+
+
         viewModelScope.launch {
             try {
-                userState = UserState.Loading
-                val userData = repository.getUserData()
-                userState = UserState.Success(userData)
+                fetchUserData()
+            }
+            catch (e : retrofit2.HttpException){
+                when(e.code()){
+                    401 ->{
+                        try {
+                            repository.refreshToken()
+                            fetchUserData()
+                            return@launch
+                        }
+                        catch (e : Exception){
+                            when(e){
+                                is retrofit2.HttpException -> {
+                                    val repsonseBody = e.response()?.errorBody()?.string()
+                                    println("Error ${e.message()}\n${repsonseBody}")
+                                    repository.clearToken()
+                                }
+                            }
+                            println("Exccpetion in refresh")
+                        }
+                    }
+                }
+                userState = UserState.Error(e)
             }
             catch (e : Exception){
-                handleException(e)
+                println("Exccpetion in ser")
+                userState = UserState.Error(e)
             }
         }
     }
@@ -59,70 +90,8 @@ class UserViewModel @Inject constructor(private val repository: Repository) : Vi
         userState = UserState.Idle
     }
 
-    suspend fun refreshoken(){
-       repository.refreshToken()
-    }
-
-    private suspend fun handleException(e : Exception){
-        when(e){
-            is retrofit2.HttpException ->{
-                val repsonseBody = e.response()?.errorBody()?.string()
-                println("Error ${e.message()}\n${repsonseBody}")
-
-
-                when(e.code()){
-                    401 ->{
-                        try {
-                            repository.refreshToken()
-                            updateUserData()
-                        }
-                        catch (e : Exception){
-                            when(e){
-                                is retrofit2.HttpException -> {
-                                    val repsonseBody = e.response()?.errorBody()?.string()
-                                    println("Error ${e.message()}\n${repsonseBody}")
-                                    repository.clearToken()
-                                    userState = UserState.Error(e)
-                                }
-                            }
-                            userState = UserState.Error(e)
-                        }
-                    }
-                    else -> userState = UserState.Error(e)
-                }
-
-
-            }
-        }
-        userState = UserState.Error(e)
-    }
 
     init {
         updateUserData()
     }
-
-
-
-    /*
-    private fun checkAuthState(){
-        val jwtToken = repository.getJwt()
-
-        println("VIEW MODEL JWTTTTT == " + jwtToken.access_token)
-        println("VIEW MODEL REFRESH == " + jwtToken.refresh_token)
-
-        if(jwtToken.refresh_token == null || jwtToken.access_token == null){
-            println("Some one is nulll")
-            authState = AuthState.NotAuthenticated
-        }else {
-            println("Authenticatd !!!!!!")
-            authState = AuthState.Authenticated
-        }
-    }*/
-
-
-
-
-
-
-
 }

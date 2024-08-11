@@ -30,12 +30,12 @@ class LoginViewModel @Inject constructor(private val repository: Repository): Vi
             try {
                 loginState = LoginState.Loading
                 repository.login(email, password)
+                repository.saveToken()
                 loginState = LoginState.Success
             }
             catch (e : Exception){
                 when(e){
                     is retrofit2.HttpException ->{
-                        val repsonseBody = e.response()?.errorBody()?.string()
                         loginState = LoginState.Error(e)
                     }
                     else -> {

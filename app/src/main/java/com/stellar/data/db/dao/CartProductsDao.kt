@@ -1,8 +1,10 @@
 package com.stellar.data.db.dao
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.paging.LoadState
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.stellar.data.db.entetities.CartProductEntity
@@ -15,22 +17,25 @@ interface CartProductsDao {
     @Query("Select * from cart_products")
     suspend fun getAllCartProducts() : List<CartProductEntity>
 
-    @Insert()
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun tryInsertCartProduct(product : CartProductEntity) : Long
-
 
 
     @Transaction
     suspend fun insertOrAddQtyCartProduct(product : CartProductEntity){
         val id = tryInsertCartProduct(product)
-        if(id == -1L){
-            addQty(product.id)
+        println("IDIDIDIDID D+++++++ " + id)
+        if (id == -1L) {
+            addByProductId(product.productID)
         }
     }
 
 
     @Query("Update cart_products set qty = qty + 1 where id = :id")
     suspend fun addQty(id : Long)
+
+    @Query("Update cart_products set qty = qty + 1 where productID = :id")
+    suspend fun addByProductId(id : Int)
 
     @Query("Update cart_products set qty = qty -1 where id = :id")
     suspend fun removeQty(id : Long)

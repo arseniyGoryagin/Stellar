@@ -33,7 +33,7 @@ class ProductViewModel@Inject constructor(private val repository: Repository) : 
             productState = ProductState.Success(product)
 
         }
-        catch(e: IOException){
+        catch(e: Exception){
             productState = ProductState.Error
         }
     }

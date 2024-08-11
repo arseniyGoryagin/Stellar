@@ -13,6 +13,10 @@ interface CardDao {
     suspend fun getAllCards() : List<CardEntity>
 
 
+    @Query("Select * from card_table where id = :id")
+    suspend fun getCard( id : Int) : CardEntity
+
+
     @Insert
     suspend fun insertCard(card : CardEntity)
 

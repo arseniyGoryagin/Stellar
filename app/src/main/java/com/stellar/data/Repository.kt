@@ -1,9 +1,12 @@
 package com.stellar.data
 
 import android.content.Context
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.datastore.dataStore
 import androidx.lifecycle.MutableLiveData
 import com.stellar.api.PlatziApi
+import com.stellar.data.datastore.AddressProto
+import com.stellar.data.datastore.CardProto
 import com.stellar.data.datastore.UserStore
 import com.stellar.data.db.Db
 import com.stellar.data.db.entetities.CardEntity
@@ -28,6 +31,7 @@ import com.stellar.data.types.Product
 import com.stellar.viewmodels.SearchFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -45,9 +49,6 @@ class Repository @Inject constructor(
     @ApplicationContext private val  context: Context){
 
     var userData  = MutableLiveData<UserEntity>(UserEntity("Wiliam", "Buyer33", "-", "hello@gmai.com"))
-
-
-    private var latestSearches = mutableListOf<String>()
 
 
     private var token = userDataStore.getToken()
@@ -88,9 +89,11 @@ class Repository @Inject constructor(
 
 
     // Products\
-    suspend fun getSearchProducts(searchString : String, page: Int, perPage: Int): List<FavoriteProductWithProduct> {
+    suspend fun getSearchProducts(searchString : String, page: Int, perPage: Int, searchFilter: SearchFilter): List<FavoriteProductWithProduct> {
         return withContext(Dispatchers.IO) {
             platziApi.getProducts(
+                priceMin = searchFilter.priceRange.start.toInt(),
+                priceMax = searchFilter.priceRange.endInclusive.toInt(),
                 title = searchString,
                 limit = perPage,
                 offset = page * perPage).map {
@@ -186,42 +189,24 @@ class Repository @Inject constructor(
         })
     }
 
-    fun addSearch(search: String) {
-        latestSearches.add(search)
+    suspend fun addSearch(search: String) {
+        userDataStore.addSearch(search)
     }
 
-    fun removeSearch(search: String) {
-        latestSearches.remove(search)
+    suspend fun removeSearch(search: String) {
+        userDataStore.removeSearch(search)
+    }
+    suspend fun removeAllSearches(){
+        userDataStore.removeAllSearches()
     }
 
-    fun getLatestSearches() : List<String>{
-        println("Latest searches = \n" + latestSearches)
-        return latestSearches
+    suspend fun getLatestSearches() : Flow<List<String>> {
+       return userDataStore.getLatestSearches()
     }
-
-    /*
-    // Utility to
-    private fun  toProducts(products : List<ProductDto>) : List<Product>{
-        return  products.map {
-            toProduct(it)
-        }
-    }
-    private fun  toProductEnteties(products : List<ProductDto>) : List<ProductEntity>{
-        return  products.map {
-            toProductEntity(it)
-        }
-    }
-    private fun toProduct(product : ProductDto) : Product {
-        val isFavorite = product.id in favoriteItems
-        return  ProductDto.ProductDtoToProduct(product,isFavorite)
-    }
-    private fun toProductEntity(product : ProductDto) : ProductEntity{
-        val isFavorite = product.id in favoriteItems
-        return  ProductDto.ProductDtoToProductEntity(product,isFavorite)
-    }*/
 
 
 
+    // Utility
     private fun toPopularProduct(product : Product) : PopularProduct{
         return PopularProduct(product, type = randomType(), searches = randomSearches() )
     }
@@ -247,8 +232,6 @@ class Repository @Inject constructor(
 
 
     // JWT User
-
-
     private suspend fun getUser(token : String) : User{
         return platziApi.getProfile("Bearer ${token}")
     }
@@ -332,19 +315,25 @@ class Repository @Inject constructor(
 
 
     // Addresses
-   suspend fun getCurrentAdress(): List<Address> {
+   suspend fun getCurrentAddresses(): List<Address> {
         return addressDao.getAllAddresses().map {
             Address.entityToType(it)
         }
     }
 
+
+    suspend fun getSelectedAddress() : Flow<AddressProto>{
+        return userDataStore.getSelectedAddress()
+    }
+
     suspend fun selectAddress(id : Int){
-        addressDao.selectAddress(id)
+        val address = addressDao.getAddress(id)
+        userDataStore.selectAddress(Address.entityToType(address))
     }
 
 
 
-    // Add new Card
+    // Cards
     suspend fun addNewCard(name: String, number: String, cvv: Int, date: String) {
         return cardDao.insertCard(CardEntity(holdersName = name, number = number, cvv =  cvv, date = date ))
     }
@@ -354,6 +343,17 @@ class Repository @Inject constructor(
             Card.toCard(it)
         }
     }
+
+    suspend fun getSelectedCard() : Flow<CardProto>{
+        return userDataStore.getSelectedCard()
+    }
+
+    suspend fun selectedCard(id : Int){
+        val card = cardDao.getCard(id)
+        userDataStore.selectCard(Card.toCard(card))
+    }
+
+
 
 
     // Clear

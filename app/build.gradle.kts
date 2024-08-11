@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.dagger.hilt)
     id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
+    id("com.google.protobuf")
 }
 
 android {
@@ -57,6 +58,12 @@ android {
         jvmTarget = "1.8"
     }
 }
+
+
+
+
+
+
 
 kapt {
     correctErrorTypes = true
@@ -135,4 +142,27 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+
+    implementation  ("com.google.protobuf:protobuf-javalite:3.18.0")
+
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.21")
+
+   /// implementation("com.google.protobuf:protobuf-lite:3.0.1")
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.21.7"
+    }
+
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }

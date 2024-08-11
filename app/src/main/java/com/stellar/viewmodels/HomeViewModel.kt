@@ -52,7 +52,8 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
                 val products = repository.getNewArrivals()
                 newArrivalsState = NewArrivalsState.Success(products)
             }
-            catch(e : IOException){
+            catch(e : Exception){
+                println("EException in arrivals")
                 newArrivalsState = NewArrivalsState.Error
             }
     }
@@ -62,7 +63,8 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
             val categories = repository.getCategories()
             categoriesState = CategoriesState.Success(categories)
         }
-        catch(e : IOException){
+        catch(e : Exception){
+            println("EException in Categories")
             categoriesState = CategoriesState.Error
         }
     }

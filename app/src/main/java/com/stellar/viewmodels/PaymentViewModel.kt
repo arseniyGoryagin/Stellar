@@ -6,10 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stellar.data.Repository
+import com.stellar.data.datastore.AddressProto
+import com.stellar.data.datastore.CardProto
+import com.stellar.data.types.Address
 import com.stellar.data.types.Card
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.io.IOException
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 
@@ -33,32 +37,67 @@ class PaymentViewModel @Inject constructor (private val repository: Repository) 
 
     var cartProducts :  CartProductsState by mutableStateOf(CartProductsState.Loading)
     var cardsState : CardState = CardState.Loading
-
     var makingOrderState : MakingOrderState by mutableStateOf(MakingOrderState.Idle)
+    var selectedAddress : Flow<AddressProto>? = null
+    var selectedCard : Flow<CardProto>? = null
+
+
+    init {
+        viewModelScope.launch {
+            getCartProducts()
+            getSelectedAddress()
+            getSelectedCard()
+        }
+    }
+
+
+    fun selectCard(id : Int){
+        viewModelScope.launch {
+            repository.selectedCard(id)
+        }
+    }
+
+
+    private suspend fun getSelectedCard(){
+        selectedCard = repository.getSelectedCard()
+    }
+
+    private suspend fun getSelectedAddress(){
+        selectedAddress = repository.getSelectedAddress()
+    }
+
+
+    private suspend fun getCartProducts(){
+        try {
+            cartProducts = CartProductsState.Loading
+            val products = repository.getCartProducts()
+            cartProducts = CartProductsState.Success(products)
+
+        } catch (e: Exception) {
+            cartProducts = CartProductsState.Error(e)
+        }
+    }
+
+    private suspend fun getCards(){
+        try {
+            cardsState = CardState.Loading
+            val cards = repository.getAllCards()
+            cardsState = CardState.Success(cards)
+
+        } catch (e: Exception) {
+            cardsState = CardState.Error(e)
+        }
+    }
 
     fun updateCartProducts(){
         viewModelScope.launch {
-            try {
-                cartProducts = CartProductsState.Loading
-                val products = repository.getCartProducts()
-                cartProducts = CartProductsState.Success(products)
-
-            } catch (e: IOException) {
-                cartProducts = CartProductsState.Error(e)
-            }
+            getCartProducts()
         }
     }
 
     fun updateCards(){
         viewModelScope.launch {
-            try {
-                cardsState = CardState.Loading
-                val cards = repository.getAllCards()
-                cardsState = CardState.Success(cards)
-
-            } catch (e: IOException) {
-                cardsState = CardState.Error(e)
-            }
+           getCards()
         }
     }
 
@@ -93,11 +132,6 @@ class PaymentViewModel @Inject constructor (private val repository: Repository) 
         makingOrderState = MakingOrderState.Idle
     }
 
-
-
-    init {
-        updateCartProducts()
-    }
 
 
 }

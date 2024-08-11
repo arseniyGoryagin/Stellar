@@ -7,6 +7,7 @@ import com.stellar.data.Repository
 import com.stellar.data.db.entetities.ProductEntity
 import com.stellar.data.types.FavoriteProductWithProduct
 import com.stellar.data.types.Product
+import com.stellar.viewmodels.SearchFilter
 
 /*
 @OptIn(ExperimentalPagingApi::class)
@@ -79,7 +80,8 @@ class SearchProductsMediator(
 @OptIn(ExperimentalPagingApi::class)
 class SearchProductSource(
     private val repository: Repository,
-    val searchQuery : String
+    private val searchQuery : String,
+    private val searchFilter : SearchFilter
 ) : PagingSource<Int, FavoriteProductWithProduct>(){
 
 
@@ -92,7 +94,7 @@ class SearchProductSource(
             val perPage = params.loadSize
 
 
-            val response = repository.getSearchProducts(searchQuery, pageNumber,perPage )
+            val response = repository.getSearchProducts(searchQuery, pageNumber,perPage, searchFilter )
 
             val nextKey = if(response.isEmpty()){null}else{pageNumber + 1}
             val prevKey = if(pageNumber == 1){null}else{pageNumber - 1}

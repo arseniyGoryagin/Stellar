@@ -33,7 +33,7 @@ class FavoritesViewModel @Inject constructor(private val repository: Repository)
             val products = repository.getFavoriteProducts()
             favoriteProductsState = FavoriteProductsState.Success(products)
         }
-        catch (e : IOException){
+        catch (e : Exception){
             favoriteProductsState = FavoriteProductsState.Error
         }
     }

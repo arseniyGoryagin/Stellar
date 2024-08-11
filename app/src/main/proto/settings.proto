@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+
+option java_package = "com.stellar.data.datastore";
+option java_multiple_files =true;
+
+
+
+message SecurityProto{
+  bool faceId = 1;
+  bool rememberPassword = 2;
+  bool touchID = 3;
+}
+message NotificationsProto{
+  bool faceId = 1;
+  bool rememberPassword = 2;
+  bool touchID = 3;
+}
+
+
+
+
+message SettingsProto {
+  NotificationsProto notifications = 1;
+  SecurityProto security= 2;
+  int32 language = 3;
+
+}

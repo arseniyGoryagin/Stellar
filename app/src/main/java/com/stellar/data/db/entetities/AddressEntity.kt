@@ -10,5 +10,4 @@ data class AddressEntity (
     val id : Int,
     val title : String,
     val fullTitle : String,
-    val selected : Boolean
 )

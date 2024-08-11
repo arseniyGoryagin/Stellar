@@ -1,0 +1,17 @@
+
+syntax = "proto3";
+
+
+option java_package = "com.stellar.data.datastore";
+option java_multiple_files = true;
+
+
+
+message CardProto {
+  int32 id = 1;
+  string number = 2;
+  string holdersName = 3;
+  string date = 4;
+  int32 cvv = 5;
+}
+

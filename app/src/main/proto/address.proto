@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+
+option java_package = "com.stellar.data.datastore";
+option java_multiple_files = true;
+
+
+message AddressProto {
+  int32 id = 1;
+  string title = 2;
+  string fullTitle= 3;
+}
