@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -40,93 +45,63 @@ import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.HomeViewModel
 import com.stellar.viewmodels.NewArrivalsState
-import com.stellar.viewmodels.UserViewModel
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeContent(
     newArrivalsState: NewArrivalsState,
     onProductClick: (Int) -> Unit,
     onSeeAll: () -> Unit,
     onProductFavorite: (Int) -> Unit,
-    onProductDeFavorite: (Int) -> Unit ){
+    onProductDeFavorite: (Int) -> Unit,
+    onRefresh: () -> Unit){
 
 
-
-    /*
-    val onSeeAll =
-        {
-            val searchString = " "
-            navController.navigate("Search/$searchString"){
-                launchSingleTop = true
-            }
-        }
-
-
-
-
-    val onFavorite =
-        { id : Int ->
-            viewModel.addFavorite(id)
-        }
-
-
-    val onDeFavorite =
-        { id : Int ->
-            viewModel.removeFavorite(id)
-        }
-
-
-    val onProductClick =
-        { itemId  : Int
-            -> navController.navigate("Product/$itemId")
-        }
-        */
-
+    val refreshState = rememberPullRefreshState(
+        refreshing = newArrivalsState is NewArrivalsState.Loading,
+        onRefresh = onRefresh)
 
 
 
     when(newArrivalsState){
         is NewArrivalsState.Success -> {
-            NewArrivals(
-                products  =newArrivalsState.products,
-                onProductClick = onProductClick,
-                onFavorite = onProductFavorite,
-                onSeeAll =  onSeeAll,
-                onDeFavorite = onProductDeFavorite)}
-        NewArrivalsState.Error -> ErrorScreen(message = "Error loading products")
-        NewArrivalsState.Loading -> LoadingScreen()
-    }
-
-}
-
-@Composable
-fun NewArrivals(products : List<FavoriteProductWithProduct>, onProductClick : (Int) -> Unit, onFavorite : (Int) -> Unit, onSeeAll : () -> Unit, onDeFavorite : (Int) -> Unit) {
-
-    val bannerHeader : @Composable () -> Unit =
-        @Composable
-        {
-            Column {
-                Banner()
-                ArrivalsRow(
-                    onSeeAll = onSeeAll
+            Box(modifier = Modifier.pullRefresh(refreshState)) {
+                ItemColumn(
+                    modifier = Modifier
+                        .padding(top = 20.dp, start = 16.dp, end = 16.dp),
+                    products = newArrivalsState.products,
+                    onClick = onProductClick,
+                    onFavorite = onProductFavorite,
+                    onDeFavorite = onProductDeFavorite,
+                    header =  {
+                        Column {
+                            Banner()
+                            ArrivalsRow(
+                                onSeeAll = onSeeAll
+                            )
+                        }
+                    }
                 )
             }
         }
+        is NewArrivalsState.Error -> {
+            ErrorScreen(message = "Error loading products\n${newArrivalsState.e}", onRefresh)
+        }
+        NewArrivalsState.Loading -> {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
 
 
 
-    ItemColumn(
-        modifier = Modifier.padding(top = 20.dp, start = 16.dp, end = 16.dp),
-        products = products,
-        onClick = onProductClick,
-        onFavorite = onFavorite,
-        onDeFavorite = onDeFavorite,
-        header = bannerHeader
-    )
+
 }
-
-
-
 
 
 
@@ -205,8 +180,9 @@ fun ArrivalsRow(onSeeAll : () -> Unit){
         )
         Text(
             text = "See All",
-            modifier = Modifier.padding(16.dp)
-                .clickable{onSeeAll()},
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable { onSeeAll() },
             fontSize = 16.sp,
             color = PurpleFont
         )

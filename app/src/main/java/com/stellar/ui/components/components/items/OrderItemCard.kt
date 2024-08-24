@@ -52,7 +52,6 @@ fun OrderItemCard( onDetail : () -> Unit,
                    onTracking : () -> Unit,
                    imgSrc : String,
                    productName : String,
-                   color: String,
                    qty : String,
                    price : String,
                    status : OrderStatuses,
@@ -107,10 +106,6 @@ fun OrderItemCard( onDetail : () -> Unit,
                     fontSize = 20.sp
                     )
                 Text(
-                    text = "Color: ${color}",
-                    fontSize = 16.sp
-                    )
-                Text(
                     text = "Qty: ${qty}",
                     fontSize = 16.sp
                     )
@@ -124,7 +119,7 @@ fun OrderItemCard( onDetail : () -> Unit,
 
                 val statusText = when(status){
                     OrderStatuses.Completed -> "Completed"
-                    OrderStatuses.OnProgress -> "On Progress"
+                    OrderStatuses.OnProgress -> "In Progress"
                 }
 
                 val stutusColor =  when(status){
@@ -160,13 +155,11 @@ fun OrderItemCard( onDetail : () -> Unit,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 modifier = Modifier
                     .weight(1f)
-
             )
             {
                 Text("Detail",
                     fontSize = 18.sp,
                     color = Color.Black,)
-
             }
             Button(
                 onClick = onTracking,

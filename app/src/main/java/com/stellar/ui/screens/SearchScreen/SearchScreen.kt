@@ -41,6 +41,7 @@ import com.stellar.components.columns.ItemColumnPaginated
 import com.stellar.data.types.FavoriteProductWithProduct
 import com.stellar.data.types.Product
 import com.stellar.ui.theme.Grey170
+import com.stellar.viewmodels.CategoriesState
 import com.stellar.viewmodels.SearchFilter
 import com.stellar.viewmodels.SearchViewModel
 import kotlinx.coroutines.flow.Flow
@@ -55,6 +56,8 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController, searc
 
     val latestSearchesState = viewModel.latestSearches?.collectAsState(initial = null)
     val latestSearches = latestSearchesState?.value
+
+    val categoriesState = viewModel.categories
 
     val popularProductsState = viewModel.popularProductsState
     val products : LazyPagingItems<FavoriteProductWithProduct>? = viewModel.productsState.collectAsState().value?.collectAsLazyPagingItems()
@@ -74,9 +77,10 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController, searc
 
 
     val onSearch = { newSearchString: String ->
-            viewModel.saveSearch(newSearchString)
-            viewModel.getProducts(newSearchString, currentFilter)
-            currentSearchString = newSearchString
+            val trimmedSearchString = newSearchString.trim()
+            if(trimmedSearchString != ""){viewModel.saveSearch(newSearchString)}
+            viewModel.getProducts(trimmedSearchString, currentFilter)
+            currentSearchString = trimmedSearchString
     }
 
     val onValueChanged = { it : String ->
@@ -173,7 +177,9 @@ fun SearchScreen(viewModel: SearchViewModel, navController: NavController, searc
             if(showFilterBottomSheet){
                 FilterBottomSheet(
                     onDismiss = onFilterDismiss,
-                    currentSearchFilter = currentFilter)
+                    currentSearchFilter = currentFilter,
+                    categoriesState = categoriesState
+                )
             }
         }
     }

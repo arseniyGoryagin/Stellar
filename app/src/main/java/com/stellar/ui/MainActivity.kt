@@ -48,6 +48,7 @@ import com.stellar.ui.screens.SettingsScreen
 import com.stellar.ui.screens.WelcomeScreen
 import com.stellar.viewmodels.AddNewCardViewModel
 import com.stellar.viewmodels.AddressViewModel
+import com.stellar.viewmodels.AppViewModel
 import com.stellar.viewmodels.CartViewModel
 import com.stellar.viewmodels.ChangePasswordViewModel
 import com.stellar.viewmodels.CreateAccountViewModel
@@ -61,7 +62,6 @@ import com.stellar.viewmodels.PaymentViewModel
 import com.stellar.viewmodels.ProductViewModel
 import com.stellar.viewmodels.SearchViewModel
 import com.stellar.viewmodels.SettingsViewModel
-import com.stellar.viewmodels.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -81,162 +81,6 @@ class MainActivity : ComponentActivity() {
 
 
 
-
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun App (){
-    val context = LocalContext.current
-    val userStore = UserStore(context)
-    val token = userStore.getToken()
-    val navController = rememberNavController()
-    val startDestination = if (token != ""){"Home"}else{"Welcome"}
-
-    StellarTheme {
-        MainAppScaffold(startDestination = startDestination, navController)
-    }
-
-}
-
-
-
-
-@Composable
-fun MainAppScaffold(startDestination : String, navController: NavHostController){
-
-
-    val userViewModel : UserViewModel = hiltViewModel()
-    val homeViewModel: HomeViewModel = hiltViewModel()
-    val cartViewModel: CartViewModel = hiltViewModel()
-    val changePasswordViewModel: ChangePasswordViewModel = hiltViewModel()
-    val myProfileViewModel: MyProfileViewModel = hiltViewModel()
-    val favoritesViewModel: FavoritesViewModel = hiltViewModel()
-    val productViewModel: ProductViewModel = hiltViewModel()
-    val searchViewModel: SearchViewModel = hiltViewModel()
-    val notificationsViewModel : NotificationsViewModel = hiltViewModel()
-    val paymentViewModel : PaymentViewModel = hiltViewModel()
-    val addressViewModel : AddressViewModel = hiltViewModel()
-    val addNewCardViewModel : AddNewCardViewModel = hiltViewModel()
-    val orderViewModel : OrderViewModel = hiltViewModel()
-    val loginViewModel : LoginViewModel = hiltViewModel()
-    val createAccountViewModel : CreateAccountViewModel = hiltViewModel()
-    val settingsViewModel : SettingsViewModel = hiltViewModel()
-
-    Scaffold(
-        content = { padding ->
-            NavHost(
-                modifier = Modifier.padding(padding),
-                navController = navController,
-                startDestination = startDestination
-            ) {
-                composable(
-                    route = "Product/{itemId}",
-                    arguments = listOf(navArgument("itemId") { type = NavType.IntType })
-                ) { backStackEntry ->
-                    ProductScreen(
-                        navController = navController,
-                        viewmodel = productViewModel,
-                        productId = backStackEntry.arguments?.getInt("itemId")
-                    )
-                }
-
-                composable(
-                    route = "Search/{searchString}",
-                    arguments = listOf(navArgument("searchString") {
-                        type = NavType.StringType
-                        nullable = true
-                    })
-                ) { backStackEntry ->
-                    SearchScreen(
-                        navController = navController,
-                        searchString = backStackEntry.arguments?.getString("searchString"),
-                        viewModel = searchViewModel
-                    )
-                }
-
-                composable("Home") {
-                    HomeScreen(navController, homeViewModel, userViewModel)
-                }
-                composable("Favorite") {
-                    FavoriteScreen(favoritesViewModel, navController)
-                }
-                composable("My Order") {
-                    MyOrderScreen(navController, orderViewModel)
-                }
-                composable("My Profile") {
-                    MyProfileScreen(navController, userViewModel, myProfileViewModel)
-                }
-                composable("Notifications") {
-                    NotificationsScreen(navController, notificationsViewModel)
-                }
-                composable("Welcome") {
-                    WelcomeScreen(navController, userViewModel)
-                }
-                composable("Create Account") {
-                    CreateAccountScreen(navController, createAccountViewModel)
-                }
-                composable("Log In") {
-                    LogInScreen(navController, loginViewModel )
-                }
-                composable("Settings") {
-                    SettingsScreen(navController, settingsViewModel)
-                }
-                composable("Cart") {
-                    CartScreen(viewModel = cartViewModel, navController)
-                }
-                composable("Payment") {
-                    PaymentScreen(viewModel = paymentViewModel, navController = navController)
-                }
-                composable("Change Password") {
-                    ChangePasswordScreen(navController = navController, changePasswordViewModel)
-                }
-                composable("Notifications Settings") {
-                    NotificationsSettingsScreen(navController)
-                }
-                composable("Security Settings") {
-                    SecurityScreen(navController = navController)
-                }
-                composable("Language Settings") {
-                    LanguageScreen(navController)
-                }
-                composable("Address") {
-                    ChooseAddressScreen(navController = navController, viewModel = addressViewModel)
-                }
-                composable("NewCard") {
-                    AddNewCardScreen(navController = navController, addNewCardViewModel)
-                }
-                composable("Legal and Polices") {
-                    LegalScreen(navController)
-                }
-                composable("Help and Support") {
-                    HelpScreen(navController)
-                }
-            }
-        },
-        bottomBar = {
-            BottomBarLogic(navController = navController)
-        }
-    )
-}
-
-
-@Composable 
-fun BottomBarLogic(navController: NavController){
-
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination?.route
-
-
-
-    val showBottomBar = currentDestination in listOf("Favorite", "Home", "My Order", "My Profile")
-    if (showBottomBar) {
-        BottomNavigationBar(navController = navController)
-    }
-}
-    
 
 
 

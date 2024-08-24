@@ -72,7 +72,8 @@ kapt {
 
 dependencies {
 
-
+    // splash screen
+    implementation("androidx.core:core-splashscreen:1.0.0")
 
     // Data store
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -98,6 +99,11 @@ dependencies {
     implementation("androidx.room:room-paging:2.5.0")
 
 
+    // pull to refresh
+    implementation ("androidx.compose.material:material:1.6.0")
+    //implementation ("androidx.compose.material:material:1.4.0-beta01")
+
+
 
     // Pagin3
     implementation ("androidx.paging:paging-runtime-ktx:3.1.0-beta01")
@@ -109,9 +115,6 @@ dependencies {
     // Retrofit with Scalar Converter
     implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
 
-    // GSON
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.google.code.gson:gson:2.8.6")
 
 
     //kotlin seriaizationn

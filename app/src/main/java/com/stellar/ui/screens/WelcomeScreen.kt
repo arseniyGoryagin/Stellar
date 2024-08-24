@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -38,25 +42,21 @@ import com.stellar.ui.theme.Blue51
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.PurpleFont
-import com.stellar.viewmodels.UserViewModel
 
 
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WelcomeScreen (navController: NavController, userViewModel: UserViewModel){
+fun WelcomeScreen (navController: NavController){
 
 
-    LaunchedEffect(Unit) {
-        userViewModel.resetState()
-    }
-
+    val scroll = rememberScrollState()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll)
     ) {
         Pager()
         Button(

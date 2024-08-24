@@ -1,5 +1,6 @@
 package com.stellar.viewmodels
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -36,7 +37,7 @@ sealed interface MakingOrderState{
 class PaymentViewModel @Inject constructor (private val repository: Repository) : ViewModel() {
 
     var cartProducts :  CartProductsState by mutableStateOf(CartProductsState.Loading)
-    var cardsState : CardState = CardState.Loading
+    var cardsState : CardState by mutableStateOf(CardState.Loading)
     var makingOrderState : MakingOrderState by mutableStateOf(MakingOrderState.Idle)
     var selectedAddress : Flow<AddressProto>? = null
     var selectedCard : Flow<CardProto>? = null
@@ -47,6 +48,7 @@ class PaymentViewModel @Inject constructor (private val repository: Repository) 
             getCartProducts()
             getSelectedAddress()
             getSelectedCard()
+            getCards()
         }
     }
 
@@ -102,26 +104,26 @@ class PaymentViewModel @Inject constructor (private val repository: Repository) 
     }
 
     fun makeOrder(){
+        println("Making order....")
         viewModelScope.launch {
             try {
+
                 makingOrderState = MakingOrderState.Loading
                 val cartProductsState = cartProducts
-                when(cartProductsState){
-                    is CartProductsState.Error -> TODO()
-                    CartProductsState.Loading -> TODO()
-                    is CartProductsState.Success -> {
 
-                        for (product in cartProductsState.products){
-                            val totalPrice = product.product.price * product.cartProduct.qty
-                            repository.addOrder(product.product.id, product.cartProduct.qty, totalPrice)
-                        }
-                        repository.clearCart()
+                if(cartProductsState is CartProductsState.Success){
+                    for (product in cartProductsState.products){
+                        val totalPrice = product.product.price * product.cartProduct.qty
+                        repository.addOrder(product.product.id, product.cartProduct.qty, totalPrice)
                     }
+                    repository.clearCart()
+                    makingOrderState = MakingOrderState.Success
+                }else{
+                    println("Error cause of cart")
+                    makingOrderState = MakingOrderState.Error(java.lang.Exception("Cart Products not available try refreshing or clearing the cart"))
                 }
-
-                makingOrderState = MakingOrderState.Success
-
             }catch (e : Exception){
+                println("Other error ++ 0 + " + e.localizedMessage)
                 makingOrderState = MakingOrderState.Error(e)
             }
         }

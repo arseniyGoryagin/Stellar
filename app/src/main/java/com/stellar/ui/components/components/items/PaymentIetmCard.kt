@@ -26,7 +26,11 @@ import com.stellar.R
 import com.stellar.ui.theme.Grey170
 
 @Composable
-fun PaymentItemCard(imgSrc : String, itemName : String, itemColor :String, itemPrice : String, modifier: Modifier = Modifier){
+fun PaymentItemCard(
+    imgSrc : String,
+    itemName : String,
+    itemPrice : String,
+    modifier: Modifier = Modifier){
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -67,14 +71,10 @@ fun PaymentItemCard(imgSrc : String, itemName : String, itemColor :String, itemP
         ) {
             Text(text = itemName)
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                    Text(
-                        text = "Color : ${itemColor}",
-                        color = Grey170
-                    )
-                    Text("$$itemPrice")
+                Text("$$itemPrice")
             }
 
         }

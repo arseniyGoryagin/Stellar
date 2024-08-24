@@ -19,11 +19,7 @@ import com.stellar.components.Buttons.NotificationButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OrderTopBar(navController : NavController){
-
-    val searchExtended by remember { mutableIntStateOf(0) }
-
-
+fun OrderTopBar(){
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
 
@@ -34,12 +30,7 @@ fun OrderTopBar(navController : NavController){
             Text(text = "My Order")
         },
         navigationIcon = {
-        },
-        actions={
-            MapButton(navController)
         }
     )
-
-
 
 }

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -39,9 +40,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.stellar.data.types.Category
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.Grey241
 import com.stellar.ui.theme.PurpleFont
+import com.stellar.viewmodels.CategoriesState
 import com.stellar.viewmodels.SearchFilter
 import kotlinx.coroutines.launch
 
@@ -49,25 +52,34 @@ import kotlinx.coroutines.launch
 @Composable
 fun FilterBottomSheet(
     onDismiss : (SearchFilter) -> Unit,
+    categoriesState: CategoriesState,
     currentSearchFilter: SearchFilter){
+    
+    
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
 
-    var currentPriceRange = currentSearchFilter.priceRange
-    var currentColor = currentSearchFilter.color
-    var currenLocation = currentSearchFilter.location
 
-    var onColorChange = { color : ColorChoice ->
-        currentColor = currentColor
+    var newSearchFilter by remember(currentSearchFilter) {
+        mutableStateOf(currentSearchFilter.copy())
+    }
+
+
+    var onColorChange = { color : String->
+        newSearchFilter = newSearchFilter.copy(color = color)
     }
 
     var onLocationChange = { locationName : String ->
-        currenLocation = locationName
+        newSearchFilter =  newSearchFilter.copy(location = locationName)
     }
 
     var onPriceRangeChange = { newRange: ClosedFloatingPointRange<Float> ->
-        currentPriceRange = newRange
+        newSearchFilter =  newSearchFilter.copy(priceRange = newRange)
+    }
+
+    var onCategoryChange = { cat : Category ->
+        newSearchFilter = newSearchFilter.copy(categoryId = cat.id)
     }
 
 
@@ -92,25 +104,26 @@ fun FilterBottomSheet(
             )
             
             PriceRange(
-                priceRange = currentPriceRange,
+                priceRange = newSearchFilter.priceRange,
                 onValueChange = onPriceRangeChange)
-
             LocationPicker(
                 onLocationChange = onLocationChange,
+                chosenLocation = newSearchFilter.location,
                 modifier = Modifier.fillMaxWidth())
-
+            CategoryPicker(
+                onCategoryChange = onCategoryChange,
+                chosenCategory = newSearchFilter.categoryId,
+                categoriesState =  categoriesState)
             ColorPicker(
                 onColorChange = onColorChange,
+                chosenColor = newSearchFilter.color,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
                     scope.launch {sheetState.hide()}.invokeOnCompletion{
-                        val searchFilter = SearchFilter(
-                            priceRange = currentPriceRange,
-                            color = currentColor,
-                            location = currenLocation)
+                        val searchFilter = newSearchFilter
                         println("Final search filter  ==== + " + searchFilter)
                         onDismiss(searchFilter) } },
 
@@ -131,16 +144,18 @@ fun FilterBottomSheet(
 
 
 
-data class ColorChoice (
-    val colorName : String,
-    val color : Color
-)
 
 
 @Composable
-fun ColorPicker(onColorChange : (ColorChoice) -> Unit, modifier: Modifier = Modifier, startColor : ColorChoice? = null){
+fun ColorPicker(onColorChange : (String) -> Unit,
+                modifier: Modifier = Modifier,
+                chosenColor : String?){
 
 
+    data class ColorChoice (
+        val colorName : String,
+        val color : Color
+    )
 
     var colorList = listOf(
         ColorChoice(color =Color.Black, colorName = "Black"),
@@ -149,9 +164,7 @@ fun ColorPicker(onColorChange : (ColorChoice) -> Unit, modifier: Modifier = Modi
         ColorChoice(color =Color.Yellow, colorName = "Yellow"),
         ColorChoice(color =Color.Red, colorName = "Red"))
 
-    var currentColor by remember{
-        mutableStateOf(startColor ?: colorList[0])
-    }
+
 
 
     Column(
@@ -167,7 +180,7 @@ fun ColorPicker(onColorChange : (ColorChoice) -> Unit, modifier: Modifier = Modi
                 fontSize = 16.sp
                 )
             Text(
-                text = currentColor.colorName,
+                text = chosenColor ?: "Not chosen",
                 color = Grey170,
                 fontSize = 16.sp
                 )
@@ -186,11 +199,10 @@ fun ColorPicker(onColorChange : (ColorChoice) -> Unit, modifier: Modifier = Modi
                         .clip(CircleShape)
                         .background(color.color)
                         .clickable {
-                            currentColor = color
-                            onColorChange(color)
+                            onColorChange(color.colorName)
                         }
                 ) {
-                    if (color == currentColor) {
+                    if (color.colorName == chosenColor) {
                         Icon(
                             Icons.Filled.Check,
                             contentDescription = null,
@@ -208,20 +220,17 @@ fun ColorPicker(onColorChange : (ColorChoice) -> Unit, modifier: Modifier = Modi
 
 
 @Composable
-fun LocationPicker(onLocationChange : (String) -> Unit, startLocation : String? = null, modifier: Modifier = Modifier){
+fun LocationPicker(onLocationChange : (String) -> Unit,
+                   chosenLocation : String? = null,
+                   modifier: Modifier = Modifier){
 
     val scrollState = rememberScrollState()
 
     var locations = listOf("Amsterdam", "Moscow", "London", "New York", "Bataysk")
 
-    var currentLocation by remember{
-        mutableStateOf(startLocation ?: locations[0])
-    }
-
 
     var onLocationClick = { name : String ->
         onLocationChange(name)
-        currentLocation = name
     }
 
     Column(
@@ -243,11 +252,11 @@ fun LocationPicker(onLocationChange : (String) -> Unit, startLocation : String? 
         ){
             locations.forEach { locationName ->
 
-                val containerColor = if(locationName == currentLocation){
+                val containerColor = if(locationName == chosenLocation){
                     PurpleFont}else{
                     Grey241}
 
-                val fontColor =  if(locationName == currentLocation){
+                val fontColor =  if(locationName == chosenLocation){
                     Grey241}else{PurpleFont}
 
                 Button(
@@ -273,6 +282,92 @@ fun LocationPicker(onLocationChange : (String) -> Unit, startLocation : String? 
         }
     }
 }
+
+
+
+
+
+@Composable
+fun CategoryPicker(onCategoryChange : (Category) -> Unit,
+                   categoriesState: CategoriesState,
+                   chosenCategory : Int? = null,
+                   modifier: Modifier = Modifier){
+
+    val scrollState = rememberScrollState()
+
+
+    var onLocationClick = { cat: Category ->
+        onCategoryChange(cat)
+    }
+
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "Category")
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(scrollState)
+        ){
+            when(categoriesState){
+                is CategoriesState.Error -> {
+                    Text(text = "Error loading categories")
+                }
+                CategoriesState.Loading -> {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ){
+                        CircularProgressIndicator()
+                    }
+                }
+                is CategoriesState.Success -> {
+                    categoriesState.categories.forEach { cat ->
+
+                        val containerColor = if(cat.id   == chosenCategory){
+                            PurpleFont}else{
+                            Grey241}
+
+                        val fontColor =  if(cat.id == chosenCategory){
+                            Grey241}else{PurpleFont}
+
+                        Button(
+                            shape = RoundedCornerShape(16.dp),
+                            onClick = {onLocationClick(cat)},
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = containerColor,
+                            ),
+                            modifier = Modifier
+                        )
+                        {
+                            Text(
+                                text = cat.name,
+                                fontSize = 16.sp,
+                                color = fontColor,
+                                modifier = Modifier.padding(vertical = 5.dp),
+                            )
+                        }
+
+                    }
+                }
+            }
+           
+
+
+        }
+    }
+}
+
+
 
 
 

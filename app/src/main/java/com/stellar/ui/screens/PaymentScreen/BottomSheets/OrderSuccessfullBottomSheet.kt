@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.stellar.data.types.Card
 import com.stellar.screens.PaymentScreen.AddPayment
-import com.stellar.screens.PaymentScreen.CardChoice
 import com.stellar.ui.theme.Grey241
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.R
@@ -95,7 +94,7 @@ fun OrderSuccessfullBottomSheet(
                 {
                     Text("Order Tracking",
                         fontSize = 18.sp,
-                        modifier = Modifier.padding(vertical = 16.dp)
+                        modifier = Modifier.padding(vertical = 10.dp)
                         )
                 }
             }

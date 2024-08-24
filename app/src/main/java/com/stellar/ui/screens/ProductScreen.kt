@@ -58,7 +58,7 @@ fun ProductScreen(productId : Int?, viewmodel : ProductViewModel,  navController
 
     Box{
         when(productState){
-            ProductState.Error -> ErrorScreen(message = "Error cant oad product")
+            ProductState.Error -> ErrorScreen(message = "Error cant oad product", {})
             ProductState.Loading -> LoadingScreen()
             is ProductState.Success -> ProductContent(productState.product, onAddToCart = { productId ->
                 viewmodel.addProductToCart(productId)

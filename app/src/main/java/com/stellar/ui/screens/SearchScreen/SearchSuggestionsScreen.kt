@@ -3,7 +3,6 @@ package com.stellar.screens.SearchScreen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,8 +15,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.stellar.components.items.SearchItemCard
-import com.stellar.data.PopularProduct
-import com.stellar.data.types.Product
 import com.stellar.screens.SearchScreen.components.LatestSearchesTextRow
 import com.stellar.screens.SearchScreen.components.SearchTagRow
 import com.stellar.ui.components.screens.ErrorScreen
@@ -69,7 +66,7 @@ fun SearchSuggestionsContent(
 
 
                 when(popularProductsState){
-                    PopularProductsState.Error -> item { ErrorScreen(message = "Error loading popular products") }
+                    PopularProductsState.Error -> item { ErrorScreen(message = "Error loading popular products", {}) }
                     PopularProductsState.Loading -> item { LoadingScreen()}
                     is PopularProductsState.Success -> {
                         val products = popularProductsState.popularProducts

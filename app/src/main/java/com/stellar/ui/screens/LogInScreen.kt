@@ -44,13 +44,6 @@ fun LogInScreen(navController: NavController, viewmodel : LoginViewModel){
         viewmodel.login(email, password)
     }
 
-    LaunchedEffect(key1 = loginState) {
-        if(loginState is LoginState.Success){
-            viewmodel.resetState()
-            navController.navigate("Home")
-        }
-    }
-
     LogInContent(loginState = loginState, onLogin = onLogin)
 
 }

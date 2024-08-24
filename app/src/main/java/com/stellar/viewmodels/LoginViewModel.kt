@@ -32,6 +32,7 @@ class LoginViewModel @Inject constructor(private val repository: Repository): Vi
                 repository.login(email, password)
                 repository.saveToken()
                 loginState = LoginState.Success
+                repository.updateUserState()
             }
             catch (e : Exception){
                 when(e){

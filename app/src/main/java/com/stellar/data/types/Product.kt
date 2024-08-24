@@ -1,7 +1,9 @@
     package com.stellar.data.types
 
-    import com.stellar.data.Category
+    import android.os.Build
+    import androidx.annotation.RequiresApi
     import com.stellar.data.dto.ProductDto
+    import java.time.format.DateTimeFormatter
 
 
     data class Product(
@@ -18,13 +20,19 @@
     {
 
         companion object{
+            @RequiresApi(Build.VERSION_CODES.O)
             fun toProduct(productDto : ProductDto) : Product{
+
+                val formater = DateTimeFormatter.ISO_DATE_TIME
+
                 return Product(
                     id = productDto.id,
                     title =  productDto.title,
                     price =  productDto.price,
                     description = productDto.description,
                     category = productDto.category,
+                    creationAt = productDto.creationAt,
+                    updatedAt = productDto.updatedAt,
                     images = productDto.images.map {
                         it.replace("\"", "").replace("[", "")
                     },

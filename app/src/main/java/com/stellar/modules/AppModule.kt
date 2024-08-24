@@ -15,7 +15,6 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,7 +50,7 @@ class AppModule {
         val BASE_URL = "https://api.escuelajs.co/api/v1/"
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .addConverterFactory(Json{ignoreUnknownKeys = true}.asConverterFactory("application/json".toMediaType()))
+            .addConverterFactory(Json{ignoreUnknownKeys = false}.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(PlatziApi::class.java)
     }

@@ -2,6 +2,7 @@ package com.stellar.screens.HomeScreen
 
 import android.annotation.SuppressLint
 import android.util.Log
+import android.view.View
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -29,9 +30,11 @@ import androidx.compose.material3.TabRow
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.stellar.R
 import com.stellar.components.BottomNavigation.BottomNavigationBar
@@ -50,6 +54,7 @@ import com.stellar.components.TopBars.HomeTopBar
 import com.stellar.components.columns.ItemColumn
 
 import com.stellar.constants.NavItems
+import com.stellar.data.UserState
 
 import com.stellar.screens.HomeScreen.CategoryContent.CategoryContent
 import com.stellar.screens.HomeScreen.HomeContent.HomeContent
@@ -59,22 +64,22 @@ import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.CartProductsState
 import com.stellar.viewmodels.HomeViewModel
-import com.stellar.viewmodels.UserState
-import com.stellar.viewmodels.UserViewModel
 
 
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel, userViewModel: UserViewModel) {
+fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel) {
 
     SideEffect {
         Log.d("RecompositionTracker", "TrackableComposable recomposed")
     }
 
+    val scope = rememberCoroutineScope()
 
+    println("IN HOME SCREEEN")
 
-    val userState = userViewModel.userState
+    val userState by homeViewModel.userState.collectAsState()
     val newArivalsState = homeViewModel.newArrivalsState
     val categoriesState = homeViewModel.categoriesState
 
@@ -95,10 +100,6 @@ fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel, user
         navController.navigate("My Profile")
     }
 
-    var onUserStateError ={
-        println("Going home......")
-        navController.navigate("Welcome")
-    }
 
     var onSeeAllProducts = {
         navController.navigate("Search/${null}"){
@@ -119,38 +120,31 @@ fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel, user
         homeViewModel.removeFavorite(id)
     }
 
-    println("UsersState === " + userState)
+    var onRefreshHomeContent = {
+        homeViewModel.updateNewArrivals()
+    }
+
 
     Scaffold(
         topBar = {
-            when(userState){
-                is UserState.Error -> {
-                    onUserStateError()
-                }
-                UserState.Idle -> {
-                    "Updating user data"
-                    userViewModel.updateUserData()
-                    CircularProgressIndicator()
-                }
+            when(val state = userState){
                 UserState.Loading -> { CircularProgressIndicator()}
                 is UserState.Success -> {
                     HomeTopBar(
                         onSearch = onSearch,
                         onNotifications = onNotifications,
                         onProfileClick = onProfileClick,
-                        userImg = userState.userData.avatar,
-                        userName = userState.userData.name
+                        userImg = state.userData.avatar,
+                        userName = state.userData.name
                         )
                 }
+                else ->{
+                    CircularProgressIndicator()
+                }
             }
-
-
                  },
         content = { innerPadding ->
-
                 val tabs = listOf("Home", "Category")
-
-
                 Column(
 
                         modifier = Modifier
@@ -187,7 +181,8 @@ fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel, user
                                     onProductClick = onProductClick,
                                     onProductFavorite = onProductFavorite,
                                     onProductDeFavorite = onProductDeFavorite,
-                                    newArrivalsState = newArivalsState)
+                                    newArrivalsState = newArivalsState,
+                                    onRefresh = onRefreshHomeContent)
                                 1 -> CategoryContent(
                                     categoriesState = categoriesState
                                 )

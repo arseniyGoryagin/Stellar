@@ -43,7 +43,9 @@ import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.FavoriteProductsState
 import com.stellar.viewmodels.FavoritesViewModel
-
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 sealed interface SortBY{
@@ -126,7 +128,8 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
 
                     SearchHeader(
                         onSearchChanged = onSearchStringChanged,
-                        onNewSelected = onNewSelected)
+                        onNewSelected = onNewSelected,
+                        modifier = Modifier.fillMaxWidth())
 
                     when(favoriteProducts){
                         is FavoriteProductsState.Success ->
@@ -140,7 +143,7 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                                 searchString = searchString
                             )
                         }
-                        FavoriteProductsState.Error -> ErrorScreen(message = "Error loading favorite products")
+                        FavoriteProductsState.Error -> ErrorScreen(message = "Error loading favorite products", {})
                         FavoriteProductsState.Loading -> LoadingScreen()
                         else -> {}
                     }
@@ -155,7 +158,7 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
 
 
 @Composable
-fun SearchHeader(onSearchChanged : (String) -> Unit, onNewSelected :(Int) -> Unit ){
+fun SearchHeader(onSearchChanged : (String) -> Unit, onNewSelected :(Int) -> Unit, modifier: Modifier ){
 
 
     val scrollState = rememberScrollState()
@@ -174,9 +177,8 @@ fun SearchHeader(onSearchChanged : (String) -> Unit, onNewSelected :(Int) -> Uni
 
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
     ) {
 
 
@@ -192,7 +194,6 @@ fun SearchHeader(onSearchChanged : (String) -> Unit, onNewSelected :(Int) -> Uni
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
-                .padding(8.dp)
                 .horizontalScroll(scrollState),
         ) {
             buttons.forEachIndexed() { index, buttonName ->
@@ -231,7 +232,12 @@ fun SearchHeader(onSearchChanged : (String) -> Unit, onNewSelected :(Int) -> Uni
 
 
 @Composable
-fun FavoriteContent(products  : List<FavoriteProductWithProduct>, sortBy : SortBY, searchString : String?, onFavorite : (Int) -> Unit, onDeFavorite : (Int) -> Unit, onItemClick :(Int) -> Unit ){
+fun FavoriteContent(products  : List<FavoriteProductWithProduct>,
+                    sortBy : SortBY,
+                    searchString : String?,
+                    onFavorite : (Int) -> Unit,
+                    onDeFavorite : (Int) -> Unit,
+                    onItemClick :(Int) -> Unit ){
 
     var filteredProducts = products
 
@@ -260,14 +266,28 @@ fun FavoriteContent(products  : List<FavoriteProductWithProduct>, sortBy : SortB
 
 
         when (sortBy) {
-            SortBY.All -> {}
+            SortBY.All -> {
+
+
+
+
+
+            }
             SortBY.Cheapest -> {
                 filteredProducts = products.sortedBy {
                     it.product.price
                 }
 
             }
-            SortBY.Latest -> {}
+            SortBY.Latest -> {
+                println("Sort by lates")
+                val formatter = DateTimeFormatter.ISO_DATE_TIME
+                filteredProducts = products.sortedByDescending{
+                    println(it.product.creationAt + "\n")
+                    LocalDateTime.parse(it.product.creationAt, formatter)
+                }
+
+            }
             SortBY.MostPopular -> {
                 filteredProducts = products.sortedBy {
                     // fake just emulating api doe not provide

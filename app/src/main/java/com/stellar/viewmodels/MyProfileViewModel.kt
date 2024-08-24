@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stellar.data.Repository
+import com.stellar.data.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,6 +28,7 @@ class MyProfileViewModel @Inject constructor(private val repository: Repository)
 
 
     var saveDataState : SaveDataState by mutableStateOf(SaveDataState.Idle)
+    var userState  = repository.userState
 
 
     fun resetState(){

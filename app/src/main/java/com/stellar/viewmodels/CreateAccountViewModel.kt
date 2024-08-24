@@ -3,16 +3,12 @@ package com.stellar.viewmodels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stellar.data.Repository
-import com.stellar.data.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.stellar.R
-
 
 
 sealed interface RegisterState{
@@ -33,20 +29,14 @@ class CreateAccountViewModel @Inject constructor(private val repository: Reposit
         viewModelScope.launch {
             try {
                 registerState = RegisterState.Loading
-                repository.registerUserAndAuth(email = email, password = password, name = name)
-               // repository.saveToken()
+                repository.registerUser(email = email, password = password, name = name)
                 registerState= RegisterState.Success
             }
+            catch (e : retrofit2.HttpException){
+                registerState = RegisterState.Error(e)
+            }
             catch (e : Exception){
-                when(e){
-                    is retrofit2.HttpException ->{
-                        //val repsonseBody = e.response()?.errorBody()?.string()
-                        registerState = RegisterState.Error(e)
-                    }
-                    else -> {
-                        registerState = RegisterState.Error(e)
-                    }
-                }
+                registerState = RegisterState.Error(e)
             }
         }
     }

@@ -6,7 +6,7 @@ import com.stellar.data.types.Order
 
 @Entity(tableName = "orders_table")
 data class OrderEntity(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id : Long = 0,
     val productID : Int,
     val status : Int = Order.INPROGRESS,

@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Menu
@@ -35,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -44,7 +47,10 @@ import com.stellar.R
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.AddNewCardViewModel
 import com.stellar.viewmodels.AddingNewCardState
+import com.stellar.viewmodels.CardError
+import com.stellar.viewmodels.CardErrors
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.processNextEventInCurrentThread
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -55,17 +61,13 @@ fun AddNewCardScreen(navController: NavController, viewModel: AddNewCardViewMode
 
     val addNewCardCb =
         { cardNumber : String, holdersName : String, cvvCode : String, date : String ->
-            viewModel.addNewCard(name = holdersName, number = cardNumber, cvv = cvvCode.toInt(), date = date)
+            viewModel.addNewCard(name = holdersName, number = cardNumber, cvv = cvvCode, date = date)
         }
 
 
     var onDismissBottomSheet = {
         navController.navigate("Payment")
-        viewModel.resetState()
     }
-
-
-
 
 
     Scaffold(
@@ -91,7 +93,11 @@ fun AddNewCardScreen(navController: NavController, viewModel: AddNewCardViewMode
 fun AddCardContent(
     onAddNewCard : (String, String, String, String) -> Unit,
                    addNewCardState : AddingNewCardState,
-                    modifier: Modifier = Modifier){
+                    modifier: Modifier = Modifier)
+{
+
+
+    var scroll = rememberScrollState()
 
     var cardNumber by remember{
         mutableStateOf("")
@@ -109,26 +115,38 @@ fun AddCardContent(
     }
 
 
-
     Column(
         modifier = modifier
             .padding(horizontal = 16.dp)
-            .padding(top = 20.dp),
+            .padding(top = 20.dp)
+            .verticalScroll(scroll),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        TextInput(
+        var errors : CardErrors? = null
+        if(addNewCardState is AddingNewCardState.Errors){
+            errors = addNewCardState.errors
+        }
+
+
+
+        TextInputWithErrorMessage(
             name = "Card Number",
             icon = { Icon(Icons.Filled.Menu, contentDescription = null) },
-            trailingIcon = { /*TODO*/ },
+            trailingIcon = { },
             onValueChange = {
                 cardNumber = it
             } ,
             visibleText = true,
-            placeholder = "Enter Card Number"
+            placeholder = "Enter Card Number",
+            error = errors?.numberError
         )
-        TextInput(
+
+
+
+
+        TextInputWithErrorMessage(
             name = "Card Holders Name",
             icon = { Icon(Icons.Filled.Person, contentDescription = null) },
             trailingIcon = { /*TODO*/ },
@@ -136,36 +154,42 @@ fun AddCardContent(
                 holdersName = it
             } ,
             visibleText = true,
-            placeholder = "Enter Holders Name"
+            placeholder = "Enter Holders Name",
+            error =  errors?.nameError
         )
-        TextInput(
+
+
+        TextInputWithErrorMessage(
             name = "Expired",
             icon = { Icon(painter = painterResource(id = R.drawable.calendar_multiselect), contentDescription = null) },
-            trailingIcon = { /*TODO*/ },
+            trailingIcon = {},
             onValueChange = {
                 expired = it
             } ,
             visibleText = true,
-            placeholder = "MM/YY"
+            placeholder = "MM/YY",
+            error = errors?.dateError
         )
-        TextInput(
+
+
+
+        TextInputWithErrorMessage(
             name = "CVV Code",
             icon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-            trailingIcon = { /*TODO*/ },
+            trailingIcon = {},
             onValueChange = {
                 cvvCode = it
             },
             visibleText = true,
-            placeholder = "CVV"
+            placeholder = "CVV",
+            error =errors?.cvvError
         )
+
+
+
         Button(
             onClick = {
-                try{
-                    cvvCode.toInt()
-                    onAddNewCard(cardNumber, holdersName, cvvCode, expired)
-                }catch (e : Exception){
-
-                }
+                onAddNewCard(cardNumber, holdersName, cvvCode, expired)
             },
             colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
             modifier = Modifier
@@ -182,13 +206,59 @@ fun AddCardContent(
                 fontSize = 18.sp,
                 modifier = Modifier.padding(vertical = 10.dp))
         }
-        if(addNewCardState is AddingNewCardState.Error){
-            Text(
-                text = addNewCardState.e.localizedMessage,
-                color = Color.Red)
+
+
+
+        if(addNewCardState is AddingNewCardState.Errors && addNewCardState.errors.otherError != null){
+            val error = addNewCardState.errors.otherError
+            if (error != null) {
+                Text(
+                    text = error,
+                    color = Color.Red)
+            }
         }
     }
 
+}
+
+
+@Composable
+fun TextInputWithErrorMessage(name: String,
+                              startValue: String = "",
+                              placeholder: String = "",
+                              icon: @Composable () -> Unit,
+                              trailingIcon: @Composable () -> Unit,
+                              onValueChange: (String) -> Unit,
+                              visibleText: Boolean,
+                              error: String? = null,
+                              enabled: Boolean = true,
+                              modifier: Modifier = Modifier){
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        TextInput(
+            name = name,
+            startValue = startValue,
+            placeholder = placeholder,
+            icon = icon,
+            trailingIcon = trailingIcon,
+            onValueChange = onValueChange,
+            visibleText = visibleText,
+            error = error != null,
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth()
+            )
+        if (error != null) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = error,
+                color = Color.Red,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp
+                )
+        }
+    }
 }
 
 

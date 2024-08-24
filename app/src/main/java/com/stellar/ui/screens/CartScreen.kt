@@ -60,13 +60,13 @@ fun CartScreen(viewModel: CartViewModel, navController: NavHostController){
 
     Scaffold(
         topBar = {
-            CartTopBar(onBackClick = {navController.navigateUp()})
+            CartTopBar(onBackClick = {navController.navigate("Home")})
                  },
     content = { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)){
 
         when(cartProducts) {
-            is CartProductsState.Error -> ErrorScreen(message = "Couldnt get cart products")
+            is CartProductsState.Error -> ErrorScreen(message = "Couldnt get cart products", {})
             CartProductsState.Loading -> LoadingScreen()
             is CartProductsState.Success -> {
                 CartContent(

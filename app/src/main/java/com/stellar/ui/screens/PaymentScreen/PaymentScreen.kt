@@ -59,6 +59,7 @@ import com.stellar.data.types.Card
 import com.stellar.data.types.CartProductWithProduct
 import com.stellar.screens.PaymentScreen.BottomSheets.OrderSuccessfullBottomSheet
 import com.stellar.screens.PaymentScreen.BottomSheets.PaymentBottomSheet
+import com.stellar.ui.screens.PaymentScreen.BottomSheets.ErrorBottomSheet
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.Grey241
 import com.stellar.viewmodels.CardState
@@ -78,6 +79,8 @@ import com.stellar.viewmodels.PaymentViewModel
 
         val selectedCardState = viewModel.selectedCard?.collectAsState(initial = null)
         val selectedCard = selectedCardState?.value
+
+        val makeOrderState = viewModel.makingOrderState
 
         var totalPrice: String = ""
         val verticalScrollState = rememberScrollState()
@@ -118,8 +121,8 @@ import com.stellar.viewmodels.PaymentViewModel
                 showChooseCard = true
             }
             else {
+                println("start making order")
                 viewModel.makeOrder()
-                orderSuccessfullBottomSheet = true
             }
         }
 
@@ -149,12 +152,10 @@ import com.stellar.viewmodels.PaymentViewModel
         }
 
 
-        LaunchedEffect(key1 = Unit) {
-            viewModel.updateCartProducts()
-            viewModel.updateCards()
+
+        var onDismissErrorSheet = {
+            viewModel.restOrderState()
         }
-
-
 
 
         Scaffold(
@@ -164,7 +165,7 @@ import com.stellar.viewmodels.PaymentViewModel
 
 
                 Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
@@ -173,11 +174,10 @@ import com.stellar.viewmodels.PaymentViewModel
                 )
                 {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        
-                        
+
+
+
+                        // Address
                         AddressBox(
                             onEditAddress = onEditAddress,
                             address = selectedAddress?.title,
@@ -186,10 +186,11 @@ import com.stellar.viewmodels.PaymentViewModel
                         )
 
 
-
+                        // Products
                         when (cartProducts) {
                             CartProductsState.Loading -> {
                                 Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Center,
                                     modifier = Modifier.fillMaxWidth()
                                 ){
@@ -219,67 +220,47 @@ import com.stellar.viewmodels.PaymentViewModel
                             }
                         }
 
-                    }
 
-
-
-                    when (cardState) {
-                        is CardState.Error -> {
-                            Text(text = "Error loading cars")
-                        }
-
-                        CardState.Loading -> {
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                 modifier = Modifier.fillMaxWidth()
-                            ){
-                                CircularProgressIndicator()
-                            }
-                        }
-
-                        is CardState.Success -> {
-                            PaymentDetails(
-                                totalPrice = totalPrice,
-                                onPayment = onAddPayment,
-                                onCheckOut = onCheckOut,
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                chosenCard = selectedCard
-                            )
-                        }
-                    }
-
+                    // Cards
+                    PaymentDetails(
+                        totalPrice = totalPrice,
+                        onPayment = onAddPayment,
+                        onCheckOut = onCheckOut,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        chosenCard = selectedCard
+                    )
 
 
                     if (showBottomSheet) {
-
-                        when (cardState) {
-                            is CardState.Error -> {}
-                            CardState.Loading -> {
-                                CircularProgressIndicator()
-                            }
-
-                            is CardState.Success -> {
-                                PaymentBottomSheet(
-                                    onClose = { showBottomSheet = false },
-                                    onAddPayment = onAddPaymentPaymentBottomSheet,
-                                    cards = cardState.cards,
-                                    onConfirmPayment = onConfirmPaymentBottomSheet
-                                )
-                            }
-                        }
-
+                        PaymentBottomSheet(
+                            onClose = { showBottomSheet = false },
+                            onAddPayment = onAddPaymentPaymentBottomSheet,
+                            cardsState = cardState,
+                            onConfirmPayment = onConfirmPaymentBottomSheet
+                        )
                     }
 
 
-                    if (orderSuccessfullBottomSheet) {
+                    if (makeOrderState is MakingOrderState.Success) {
                         OrderSuccessfullBottomSheet(
                             onClose = onCloseOrderSuccessfull,
                             onDismiss = onDismissOrderSuccessfull,
                         )
                     }
 
+                    if (makeOrderState is MakingOrderState.Error) {
+                        ErrorBottomSheet(
+                            error = makeOrderState.error.localizedMessage,
+                            onDismiss = onDismissErrorSheet
+                        )
+                    }
 
+
+
+
+
+                    // Error dialogs
                     if(showChooseAddess){
                         ErrorDialog(onDismiss = { showChooseAddess = false},
                             text = "Please choose an address before you can order",
@@ -354,7 +335,7 @@ fun PaymentDetails(
             ) {
                 Text(
                     text = "Total amount",
-                    fontSize = 12.sp,
+                    fontSize = 16.sp,
                     color = Grey170
                 )
                 Text(text = "$${totalPrice}")
@@ -452,7 +433,6 @@ fun ProductsColumn(list: List<CartProductWithProduct>, modifier: Modifier = Modi
                     PaymentItemCard(
                         imgSrc = product.images[0],
                         itemName = product.title,
-                        itemColor = "Red",
                         itemPrice = (product.price * qty).toString(),
                         modifier = Modifier.height(100.dp)
                     )
@@ -528,53 +508,6 @@ fun AddPayment(modifier: Modifier = Modifier, onClick: () -> Unit){
         Icon(painter = painterResource(id = R.drawable.plus), contentDescription = null)
         Text(text = stringResource(id = R.string.add_payment))
     }
-}
-
-
-@Composable
-fun CardChoice(name : String, details : String, startChosen : Boolean, onChosenChanged : (Boolean) -> Unit, modifier: Modifier = Modifier){
-
-    var chosen by remember {
-        mutableStateOf(startChosen)
-    }
-
-
-
-
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .padding(vertical = 16.dp)
-        ){
-            Icon(painter = painterResource(id = R.drawable.credit_card_outline), contentDescription = null)
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ){
-                Text(text = name)
-                Text(
-                    text = formatCardNumber(details),
-                    )
-            }
-        }
-        Checkbox(
-            checked = chosen,
-            onCheckedChange = {
-                chosen = it
-                onChosenChanged(it)
-                },
-            //modifier = Modifier.padding(end = 10.dp)
-        )
-    }
-
 }
 
 

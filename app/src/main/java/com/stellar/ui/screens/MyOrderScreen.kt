@@ -55,10 +55,6 @@ sealed interface SelectedTab {
 @Composable
 fun MyOrderScreen (navController: NavController, viewModel: OrderViewModel){
 
-    LaunchedEffect(key1 = Unit) {
-        viewModel.updateOrders()
-    }
-
     val tabs = listOf(SelectedTab.MyOrderTab, SelectedTab.HistoryTab)
 
     val ordersState  = viewModel.ordersState
@@ -76,25 +72,15 @@ fun MyOrderScreen (navController: NavController, viewModel: OrderViewModel){
 
 
 
-
     Scaffold(modifier = Modifier.background(Color.White),
-        topBar = { OrderTopBar(navController = navController) },
+        topBar = { OrderTopBar() },
         content = { innerPadding ->
             Box(modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()){
-
-
-
-
-
-
-
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-
-
                     TabRow(
                         selectedTabIndex = selectedTab.index,
                         containerColor = Color.White,
@@ -123,9 +109,6 @@ fun MyOrderScreen (navController: NavController, viewModel: OrderViewModel){
                         }
 
                     }
-
-
-
 
 
                     when (selectedTab) {
@@ -171,7 +154,7 @@ fun MyOrderScreen (navController: NavController, viewModel: OrderViewModel){
                                         modifier = Modifier.fillMaxSize()
                                     ) {
                                         Text(
-                                            text = "Error loading orders try refreshing teh page\n" +
+                                            text = "Error loading orders try refreshing the page\n" +
                                                     "${ordersState.e.localizedMessage}",
                                             color = Color.Red,
                                             textAlign = TextAlign.Center
@@ -256,12 +239,15 @@ fun MyOrderContent(ordersWithProduct : List<OrderWithProduct>,
             modifier = Modifier.fillMaxSize()
         ) {
             Text(
-                text = "No Completed Orders Yet!",
+                text = "No Completed Orders Yet",
                 color = Grey170,
                 textAlign = TextAlign.Center
             )
         }
     }else{
+
+        println("Orders == " + ordersWithProduct)
+
     LazyColumn {
 
 
@@ -282,7 +268,6 @@ fun MyOrderContent(ordersWithProduct : List<OrderWithProduct>,
                 onTracking = onTrackingCb,
                 imgSrc = product.images[0],
                 productName = product.title,
-                color = "Red",
                 qty = order.qty.toString(),
                 price = order.totalPrice.toString(),
                 status = orderStatus,

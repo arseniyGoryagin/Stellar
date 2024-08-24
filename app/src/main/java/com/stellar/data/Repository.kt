@@ -1,9 +1,8 @@
 package com.stellar.data
 
 import android.content.Context
-import androidx.compose.runtime.referentialEqualityPolicy
-import androidx.datastore.dataStore
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.ui.platform.LocalContext
+import com.stellar.Exceptions.NoTokenException
 import com.stellar.api.PlatziApi
 import com.stellar.data.datastore.AddressProto
 import com.stellar.data.datastore.CardProto
@@ -24,23 +23,32 @@ import com.stellar.data.types.Address
 import com.stellar.data.types.Card
 import com.stellar.data.types.CartProduct
 import com.stellar.data.types.CartProductWithProduct
+import com.stellar.data.types.Category
 import com.stellar.data.types.FavoriteProductWithProduct
+import com.stellar.data.types.JwtToken
 import com.stellar.data.types.Order
 import com.stellar.data.types.OrderWithProduct
+import com.stellar.data.types.PopularProduct
 import com.stellar.data.types.Product
+import com.stellar.data.types.User
+import com.stellar.viewmodels.CartProductsState
 import com.stellar.viewmodels.SearchFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
 
-
-
-
-
+sealed interface UserState{
+    data class Success(val userData : User) : UserState
+    object Idle : UserState
+    data class Error(val e : Exception) : UserState
+    object Loading : UserState
+}
 
 class Repository @Inject constructor(
     private val userDataStore : UserStore,
@@ -48,7 +56,6 @@ class Repository @Inject constructor(
     private val db : Db,
     @ApplicationContext private val  context: Context){
 
-    var userData  = MutableLiveData<UserEntity>(UserEntity("Wiliam", "Buyer33", "-", "hello@gmai.com"))
 
 
     private var token = userDataStore.getToken()
@@ -56,7 +63,7 @@ class Repository @Inject constructor(
 
 
     private val notificationsDao = db.notificationDao()
-    private  val productDao = db.productDao()
+    //private val productDao = db.productDao()
     private val addressDao = db.addressDao()
     private val cardDao = db.cardDao()
     private val cartProductsDao = db.cartProductsDao()
@@ -64,7 +71,98 @@ class Repository @Inject constructor(
     private val favoriteProductsDao = db.favoriteProductsDao()
 
 
+    // User data
+    private var _userState = MutableStateFlow<UserState>(UserState.Loading)
 
+    val userState : StateFlow<UserState> = _userState
+
+    suspend fun fetchUserData(){
+        _userState.value = UserState.Loading
+        val userData = getUserData()
+        _userState.value = UserState.Success(userData)
+    }
+
+    suspend fun updateUserState(){
+        try {
+            fetchUserData()
+        }
+        catch (e : retrofit2.HttpException){
+            when(e.code()){
+                401 ->{
+                    try {
+                        refreshToken()
+                        fetchUserData()
+                        return
+                    }
+                    catch (e : retrofit2.HttpException){
+                        clearToken()
+                    }
+                    catch (e : Exception){
+                    }
+                }
+            }
+            _userState.value = UserState.Error(e)
+        }
+        catch (e : NoTokenException){
+            _userState.value = UserState.Idle
+
+        }
+        catch (e : Exception){
+            println("Exccpetion in ser")
+            _userState.value = UserState.Error(e)
+        }
+    }
+
+
+    // JWT User
+    private suspend fun getUser(token : String) : User {
+        return platziApi.getProfile("Bearer ${token}")
+    }
+
+
+    suspend fun  getUserData() : User {
+        if (token == ""){
+            throw NoTokenException()
+        }
+        return getUser(token)
+    }
+
+
+    private suspend fun auth(email: String, password: String) : JwtToken {
+        return platziApi.auth(LoginRequest(email, password))
+    }
+
+    suspend fun login(email: String, password: String) : User {
+        val jwtTokenVal = auth(email, password)
+        token = jwtTokenVal.access_token
+        refreshToken = jwtTokenVal.refresh_token
+        return getUser(token)
+    }
+
+    suspend fun registerUser(email : String, password : String, name : String){
+        platziApi.registerUser(RegisterRequest(email, password, name, avatar ="https://imgur.com/gallery/im-london-doing-best-to-keep-low-profile-DpmCVGl", role = "customer"))
+    }
+
+
+    suspend fun clearToken(){
+        userDataStore.removeToken()
+        userDataStore.removeRefreshToken()
+    }
+
+    suspend fun refreshToken(){
+        val jwtTokenVal = platziApi.refreshToken( "Bearer ${token}", RefreshToken(refreshToken))
+        token = jwtTokenVal.access_token
+        refreshToken = jwtTokenVal.refresh_token
+    }
+
+    suspend fun saveToken(){
+        userDataStore.saveToken(token)
+        userDataStore.saveRefreshToken(refreshToken)
+    }
+
+
+
+    // Main get
     suspend fun getNewArrivals() : List<FavoriteProductWithProduct>{
         return  platziApi.getNewArrivals().map { productDto ->
             val product = Product.toProduct(productDto)
@@ -88,10 +186,13 @@ class Repository @Inject constructor(
     }
 
 
-    // Products\
+    // Products
+
     suspend fun getSearchProducts(searchString : String, page: Int, perPage: Int, searchFilter: SearchFilter): List<FavoriteProductWithProduct> {
         return withContext(Dispatchers.IO) {
+            println("Getting products with category == + " + searchFilter.categoryId)
             platziApi.getProducts(
+                categoryId = searchFilter.categoryId,
                 priceMin = searchFilter.priceRange.start.toInt(),
                 priceMax = searchFilter.priceRange.endInclusive.toInt(),
                 title = searchString,
@@ -107,15 +208,6 @@ class Repository @Inject constructor(
         }
 
     }
-
-    suspend fun updateDbWithProducts(products : List<ProductEntity>){
-        //productDao.upsertProducts(products)
-    }
-
-    suspend fun clearAllProducts(){
-       // productDao.clearAll()
-    }
-
 
 
     // Cart
@@ -149,12 +241,7 @@ class Repository @Inject constructor(
 
 
 
-
-
-
     // Favorite
-
-
     suspend fun addFavorite(id : Int){
         favoriteProductsDao.insertFavoriteProduct(FavoriteProductsEntity(productID = id))
     }
@@ -162,19 +249,58 @@ class Repository @Inject constructor(
         favoriteProductsDao.removeFavoriteProduct(id)
     }
 
-    suspend fun getFavoriteProducts(): List<FavoriteProductWithProduct> {
-        return favoriteProductsDao.getFavoriteProducts().map { favoriteProduct ->
-            withContext(Dispatchers.IO) {
-                val product = getProduct(favoriteProduct.productID)
-                FavoriteProductWithProduct(
-                    product = product,
-                    favorite = favoriteProductsDao.isFavoriteProduct(product.id) == 1
-                )
-            }
 
+    data class ItemDeletedError(val deletedItem : FavoriteProductsEntity) : Exception(){}
+
+    suspend fun getFavoriteProducts(): List<FavoriteProductWithProduct> {
+
+
+        var fetchedProducts : List<Product> = mutableListOf()
+        var lastLoadedIndex : Int = 0
+
+        while (true) {
+            try {
+
+                val productsFromDb  = favoriteProductsDao.getFavoriteProducts()
+
+
+                for (i in lastLoadedIndex until productsFromDb.size) {
+                    try {
+                        val productFromDb = productsFromDb[i]
+                        val product =  getProduct(productFromDb.productID)
+                        fetchedProducts += product
+                        lastLoadedIndex += 1
+                    } catch (e: retrofit2.HttpException) {
+                        throw ItemDeletedError(productsFromDb[i])
+                    }
+                }
+
+                return fetchedProducts.map {
+                    FavoriteProductWithProduct(
+                        product = it,
+                        favorite = favoriteProductsDao.isFavoriteProduct(it.id) == 1
+                    )
+                }
+            } catch (e: ItemDeletedError) {
+                favoriteProductsDao.removeFavoriteProduct(e.deletedItem.productID)
+            }
         }
+
     }
 
+
+    /*
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val product = getProduct(favoriteProduct.productID)
+                        }
+                        val product = getProduct(favoriteProduct.productID)
+                        FavoriteProductWithProduct(
+                            product = product,
+                            favorite = favoriteProductsDao.isFavoriteProduct(product.id) == 1
+                        )
+
+                    }*/
 
 
 
@@ -207,7 +333,7 @@ class Repository @Inject constructor(
 
 
     // Utility
-    private fun toPopularProduct(product : Product) : PopularProduct{
+    private fun toPopularProduct(product : Product) : PopularProduct {
         return PopularProduct(product, type = randomType(), searches = randomSearches() )
     }
 
@@ -227,56 +353,6 @@ class Repository @Inject constructor(
     }
 
 
-
-
-
-
-    // JWT User
-    private suspend fun getUser(token : String) : User{
-        return platziApi.getProfile("Bearer ${token}")
-    }
-
-
-    suspend fun  getUserData() : User{
-           return getUser(token)
-    }
-
-
-    private suspend fun auth(email: String, password: String) : JwtToken{
-        return platziApi.auth(LoginRequest(email, password))
-    }
-
-    suspend fun login(email: String, password: String) : User{
-        val jwtTokenVal = auth(email, password)
-        token = jwtTokenVal.access_token
-        refreshToken = jwtTokenVal.refresh_token
-        return getUser(token)
-    }
-
-    suspend fun registerUserAndAuth(email : String, password : String, name : String) : User{
-        val user = platziApi.registerUser(RegisterRequest(email, password, name, avatar ="https://imgur.com/gallery/im-london-doing-best-to-keep-low-profile-DpmCVGl", role = "customer"))
-        val jwtTokenVal = auth(email, password)
-        token = jwtTokenVal.access_token
-        refreshToken = jwtTokenVal.refresh_token
-        return user
-    }
-
-
-    suspend fun clearToken(){
-        userDataStore.removeToken()
-        userDataStore.removeRefreshToken()
-    }
-
-    suspend fun refreshToken(){
-        val jwtTokenVal = platziApi.refreshToken( "Bearer ${token}", RefreshToken(refreshToken))
-        token = jwtTokenVal.access_token
-        refreshToken = jwtTokenVal.refresh_token
-    }
-
-    suspend fun saveToken(){
-        userDataStore.saveToken(token)
-        userDataStore.saveRefreshToken(refreshToken)
-    }
 
 
 
@@ -362,6 +438,7 @@ class Repository @Inject constructor(
         ordersDao.clearAllOrders()
         favoriteProductsDao.clearAllFavoriteProducts()
         cartProductsDao.clearCart()
+        cardDao.deleteAllCards()
     }
 
 
@@ -369,6 +446,11 @@ class Repository @Inject constructor(
     suspend fun addOrder(productID : Int, qty : Int, totalPrice : Long){
         return ordersDao.addOrder(OrderEntity(productID = productID, qty = qty, totalPrice = totalPrice))
     }
+
+    suspend fun clearAllOrders(){
+        ordersDao.clearAllOrders()
+    }
+
     suspend fun getAllOrders() : List<OrderWithProduct>{
         return ordersDao.getAllOrders().map {
             val product = getProduct(it.productID)
@@ -377,6 +459,29 @@ class Repository @Inject constructor(
         }
     }
 
+    /*
+    suspend fun makeOrderFromCart() {
+
+        val cartProducts = getCartProducts()
+
+        for (cartProduct in cartProducts){
+
+        }
+
+
+        when(cartProductsState){
+            is CartProductsState.Error -> TODO()
+            CartProductsState.Loading -> TODO()
+            is CartProductsState.Success -> {
+
+                for (product in cartProductsState.products){
+                    val totalPrice = product.product.price * product.cartProduct.qty
+                    repository.addOrder(product.product.id, product.cartProduct.qty, totalPrice)
+                }
+                repository.clearCart()
+            }
+        }
+    }*/
 
 
 }

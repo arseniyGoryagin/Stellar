@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -55,16 +56,8 @@ fun CreateAccountScreen(navController: NavController, viewModel: CreateAccountVi
 
     val context = LocalContext.current
 
-    /*LaunchedEffect(Unit) {
-        viewModel.updateUserData()
-    }*/
-
 
     val scope = rememberCoroutineScope()
-
-    val onSignInClick = { email : String, password : String, name : String ->
-        viewModel.register(email, password, name)
-    }
 
 
     var showPassword by remember {
@@ -88,8 +81,10 @@ fun CreateAccountScreen(navController: NavController, viewModel: CreateAccountVi
         mutableStateOf(true)
     }
 
+    //
+
     var onCreateAccountButtonClick = {
-        onSignInClick(email, password, name)
+        viewModel.register(email, password, name)
         inputChanged = false
         errorToastShown = false
     }
@@ -260,6 +255,7 @@ fun RegisterSuccessBottomSheet(onDismiss : () -> Unit){
                 modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
             )
             Text(
+                textAlign = TextAlign.Center,
                 text = "Congratulations! Your account already created",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -268,8 +264,9 @@ fun RegisterSuccessBottomSheet(onDismiss : () -> Unit){
             )
             Button(
                 onClick = {
-                    scope.launch { sheetState.hide() }
-                    onDismiss()
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        onDismiss()
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = PurpleFont),
                 modifier = Modifier

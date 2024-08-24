@@ -20,4 +20,8 @@ interface CardDao {
     @Insert
     suspend fun insertCard(card : CardEntity)
 
+    @Query("Delete from card_table")
+    suspend fun deleteAllCards()
+
+
 }

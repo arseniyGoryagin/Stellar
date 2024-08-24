@@ -5,13 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.stellar.data.Category
-import com.stellar.data.types.Product
+import com.stellar.data.types.Category
 import com.stellar.data.Repository
+import com.stellar.data.UserState
 import com.stellar.data.types.FavoriteProductWithProduct
+import com.stellar.data.types.User
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.io.IOException
 import javax.inject.Inject
 
 
@@ -19,16 +20,18 @@ import javax.inject.Inject
 
 sealed interface NewArrivalsState {
     data class Success(val products : List<FavoriteProductWithProduct>): NewArrivalsState
-    object Error : NewArrivalsState
+    data class Error(val e : Exception) : NewArrivalsState
     object Loading : NewArrivalsState
 }
 
 
 sealed interface CategoriesState{
     data class Success(val categories : List<Category>): CategoriesState
-    object Error : CategoriesState
+    data class Error(val e : Exception) : CategoriesState
     object Loading : CategoriesState
 }
+
+
 
 
 @HiltViewModel
@@ -38,14 +41,19 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
         private set
     var categoriesState : CategoriesState by mutableStateOf(CategoriesState.Loading)
         private set
+    var userState  : StateFlow<UserState> = repository.userState
 
     init {
         viewModelScope.launch {
+            //updateUserState()
             getNewArrivals()
             getCategories()
         }
     }
 
+    suspend fun updateUserState(){
+        repository.updateUserState()
+    }
 
     suspend fun getNewArrivals(){
             try {
@@ -53,8 +61,8 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
                 newArrivalsState = NewArrivalsState.Success(products)
             }
             catch(e : Exception){
-                println("EException in arrivals")
-                newArrivalsState = NewArrivalsState.Error
+                println("EException in arrivals  ++ + " + e.localizedMessage)
+                newArrivalsState = NewArrivalsState.Error(e)
             }
     }
 
@@ -65,7 +73,7 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
         }
         catch(e : Exception){
             println("EException in Categories")
-            categoriesState = CategoriesState.Error
+            categoriesState = CategoriesState.Error(e)
         }
     }
 
@@ -104,7 +112,10 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
 
     }
 
-
-
+    fun updateNewArrivals() {
+        viewModelScope.launch {
+            getNewArrivals()
+        }
+    }
 
 }

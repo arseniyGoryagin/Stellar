@@ -1,9 +1,9 @@
 package com.stellar.api
 
-import com.stellar.data.Category
+import com.stellar.data.types.Category
 import com.stellar.data.requests.UserData
-import com.stellar.data.JwtToken
-import com.stellar.data.User
+import com.stellar.data.types.JwtToken
+import com.stellar.data.types.User
 import com.stellar.data.dto.ProductDto
 import com.stellar.data.requests.LoginRequest
 import com.stellar.data.requests.NewPassword
@@ -38,7 +38,7 @@ interface PlatziApi{
         @Query("offset") offset: Int = 0,
         @Query("price_min") priceMin : Int? = null,
         @Query("price_max") priceMax: Int? = null,
-        @Query("Category") categoryId: Int? = null
+        @Query("categoryId") categoryId: Int? = null
     ) : List<ProductDto>
 
 

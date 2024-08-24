@@ -11,6 +11,7 @@ import com.stellar.data.types.Order
 import com.stellar.data.types.OrderWithProduct
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 
@@ -28,14 +29,29 @@ class OrderViewModel @Inject constructor(private val repository: Repository): Vi
     var ordersState : OrdersStatus by mutableStateOf(OrdersStatus.Loading)
 
 
+    private suspend fun clearOrders(){
+        repository.clearAllOrders()
+    }
+
+    suspend fun fetchOrders(){
+        ordersState = OrdersStatus.Loading
+        val orders = repository.getAllOrders()
+        ordersState = OrdersStatus.Success(orders)
+    }
+
     fun updateOrders(){
         viewModelScope.launch {
             try {
-                ordersState = OrdersStatus.Loading
-                val orders = repository.getAllOrders()
-                ordersState = OrdersStatus.Success(orders)
-
-            }catch (e : Exception){
+                fetchOrders()
+            }catch (e : retrofit2.HttpException){
+                when(e.code()){
+                    400 -> {
+                        clearOrders()
+                        fetchOrders()
+                    }
+                }
+            }
+            catch (e : Exception){
                 ordersState = OrdersStatus.Error(e)
             }
         }

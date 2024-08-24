@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,28 +41,22 @@ import coil.request.ImageRequest
 import com.stellar.R
 import com.stellar.components.Input.TextInput
 import com.stellar.components.TopBars.ProfileTopBar
-import com.stellar.data.User
+import com.stellar.data.UserState
+import com.stellar.data.types.User
 import com.stellar.ui.theme.Grey170
 import com.stellar.ui.theme.PurpleFont
 import com.stellar.viewmodels.MyProfileViewModel
 import com.stellar.viewmodels.SaveDataState
-import com.stellar.viewmodels.UserState
-import com.stellar.viewmodels.UserViewModel
-
 
 @Composable
-fun MyProfileScreen(navController: NavController, userViewModel: UserViewModel, myProfileViewModel: MyProfileViewModel){
+fun MyProfileScreen(navController: NavController, myProfileViewModel: MyProfileViewModel){
 
 
     val savingState = myProfileViewModel.saveDataState
-    val userState = userViewModel.userState
+    val userState by myProfileViewModel.userState.collectAsState()
 
     if (userState is UserState.Idle || userState is UserState.Error){
         navController.navigate("Welcome")
-    }
-
-    LaunchedEffect(Unit) {
-        myProfileViewModel.resetState()
     }
 
 
@@ -73,27 +68,21 @@ fun MyProfileScreen(navController: NavController, userViewModel: UserViewModel, 
         myProfileViewModel.resetState()
     }
 
-    var goToWelcomePage = {
-        navController.navigate("Welcome")
-    }
-
-
-
     Scaffold(
         topBar = { ProfileTopBar(onBackClick = {navController.navigateUp()}, onNotificationClick = {navController.navigate("Notifications")}) },
         content = { innerPadding ->
-                when(userState){
-                    is UserState.Error -> {goToWelcomePage()}
-                    UserState.Idle -> {userViewModel.updateUserData()}
-                    UserState.Loading -> { CircularProgressIndicator()}
+                when(val state = userState){
                     is UserState.Success -> {
                         MyProfileContent(
                             onSaveChanges = onSaveChanged,
                             onNewValue = onNewValue,
                             savingState = savingState,
-                            userData = userState.userData,
+                            userData = state.userData,
                             modifier = Modifier.padding(innerPadding)
                         )
+                    }
+                    else -> {
+                        CircularProgressIndicator()
                     }
                 }
         }
@@ -115,16 +104,6 @@ private fun MyProfileContent(userData: User,
                              onNewValue : () -> Unit,
                              modifier: Modifier = Modifier){
 
-
-
-
-    /*
-    if(success != null){
-        LaunchedEffect(Unit) {
-            userViewModel.updateUserData()
-        }
-    }*/
-
         val context = LocalContext.current
 
         var isFirstChange by remember {
@@ -140,12 +119,9 @@ private fun MyProfileContent(userData: User,
             mutableStateOf(userData.email)
         }
 
-
-
         var onEmailValueChange = { newEmail : String ->
             email = newEmail
         }
-
 
         var onNameValueChange = { newName : String ->
             name = newName
@@ -294,29 +270,5 @@ private fun MyProfileContent(userData: User,
             if(savingState is SaveDataState.Success){
                 Toast.makeText(context, "Profile saved", Toast.LENGTH_SHORT).show()
             }
-
-
-
         }
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-@Preview
-@Composable
-private fun prev(){
-
-
-
-}
-
