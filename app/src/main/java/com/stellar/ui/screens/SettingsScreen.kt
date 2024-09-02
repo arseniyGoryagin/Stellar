@@ -2,11 +2,13 @@ package com.stellar.ui.screens
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,7 +84,7 @@ fun SettingsScreen(navController : NavController, viewmodel : SettingsViewModel)
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(innerPadding)
+                            .padding(top = innerPadding.calculateTopPadding(), bottom = 0.dp)
                             .background(Grey241)
                             .padding(horizontal = 16.dp)
                             .padding(top = 16.dp)
@@ -246,9 +248,10 @@ fun LogOutItem(value : String, onClick : () -> Unit,  icon : @Composable () -> U
             .height(50.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Color.White)
-            .clickable { onClick() }
-            .padding(16.dp)
-
+            .clickable {
+                onClick()
+            }
+            .padding(start = 16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -258,18 +261,13 @@ fun LogOutItem(value : String, onClick : () -> Unit,  icon : @Composable () -> U
             Text(
                 text = value,
                 modifier = Modifier.padding(start = 16.dp),
-                color = Color.Red,
                 fontSize = 16.sp
             )
         }
+        Icon(
+            painter = painterResource(id = R.drawable.chevron_right),
+            contentDescription = null
+        )
+
     }
-}
-
-
-
-
-@Preview
-@Composable
-fun ss(){
-   // SettingsScreen(navController = rememberNavController(), userViewModel = hiltViewModel())
 }

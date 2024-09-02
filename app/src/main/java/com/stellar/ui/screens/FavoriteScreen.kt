@@ -122,7 +122,7 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(innerPadding)
+                        .padding(top = innerPadding.calculateTopPadding(), bottom = 0.dp)
                         .padding(horizontal = 16.dp)
                 ){
 
@@ -145,7 +145,6 @@ fun FavoriteScreen(viewModel: FavoritesViewModel, navController : NavController)
                         }
                         FavoriteProductsState.Error -> ErrorScreen(message = "Error loading favorite products", {})
                         FavoriteProductsState.Loading -> LoadingScreen()
-                        else -> {}
                     }
 
                 }

@@ -66,9 +66,14 @@ fun SearchSuggestionsContent(
 
 
                 when(popularProductsState){
-                    PopularProductsState.Error -> item { ErrorScreen(message = "Error loading popular products", {}) }
-                    PopularProductsState.Loading -> item { LoadingScreen()}
+                    PopularProductsState.Error -> item {
+                        ErrorScreen(message = "Error loading popular products", {})
+                    }
+                    PopularProductsState.Loading -> item {
+                        LoadingScreen()
+                    }
                     is PopularProductsState.Success -> {
+
                         val products = popularProductsState.popularProducts
 
                         items(products.size) { index ->
@@ -82,6 +87,7 @@ fun SearchSuggestionsContent(
                                 imgSrc = product.images[0],
                                 onClick = onPopularSearchClick,
                                 trailingIcon = {
+                                    /*
                                     val backgorundColor = when(popularProduct.type){
                                         "Hot" ->{Color.Red}
                                         "Popular" -> {Color.Green}
@@ -98,7 +104,7 @@ fun SearchSuggestionsContent(
                                             text = popularProduct.type,
                                             color = Color.White
                                         )
-                                    }
+                                    }*/
                                 },
                                 searches = "${popularProduct.searches}k searches today",
                                 modifier =

@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Stellar" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor" type="">@android:color/transparent</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/bag_personal_outline</item>
-        <item name="windowSplashScreenBackground">@android:color/holo_purple</item>
     </style>
+
+
+    <!-- Splash Screen Theme. -->
+    <style name="Theme.AppSplash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/purple_main</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/bag_personal_outline</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="postSplashScreenTheme">@style/Theme.Stellar</item>
+    </style>
+
 </resources>

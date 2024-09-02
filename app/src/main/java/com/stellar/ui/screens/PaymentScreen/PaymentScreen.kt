@@ -66,6 +66,7 @@ import com.stellar.viewmodels.CardState
 import com.stellar.viewmodels.CartProductsState
 import com.stellar.viewmodels.MakingOrderState
 import com.stellar.viewmodels.PaymentViewModel
+import com.stellar.viewmodels.ProductState
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @Composable
@@ -82,7 +83,7 @@ import com.stellar.viewmodels.PaymentViewModel
 
         val makeOrderState = viewModel.makingOrderState
 
-        var totalPrice: String = ""
+
         val verticalScrollState = rememberScrollState()
 
         // Bottom sheets
@@ -168,14 +169,12 @@ import com.stellar.viewmodels.PaymentViewModel
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding)
+                        .padding(top = padding.calculateTopPadding(), bottom = 0.dp)
                         .padding(horizontal = 16.dp)
                         .verticalScroll(verticalScrollState)
                 )
                 {
                     Spacer(modifier = Modifier.height(16.dp))
-
-
 
                         // Address
                         AddressBox(
@@ -185,45 +184,16 @@ import com.stellar.viewmodels.PaymentViewModel
                                 .fillMaxWidth()
                         )
 
-
                         // Products
-                        when (cartProducts) {
-                            CartProductsState.Loading -> {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                ){
-                                    CircularProgressIndicator()
-                                }
-                            }
-
-                            is CartProductsState.Success -> {
-
-                                ProductsColumn(
-                                    list = cartProducts.products,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(400.dp)
-                                )
-
-
-                                totalPrice = cartProducts.products.sumOf { cartProductWithProduct ->
-                                    cartProductWithProduct.cartProduct.qty * cartProductWithProduct.product.price
-                                }.toString()
-
-
-                            }
-
-                            is CartProductsState.Error -> {
-                                Text(text = "Error loading cart products\n${cartProducts.error.localizedMessage}")
-                            }
-                        }
-
+                    ProductsContent(productsState = cartProducts)
 
                     // Cards
                     PaymentDetails(
-                        totalPrice = totalPrice,
+                        totalPrice = if(cartProducts is CartProductsState.Success){
+                            cartProducts.products.sumOf { cartProductWithProduct ->
+                                cartProductWithProduct.cartProduct.qty * cartProductWithProduct.product.price
+                            }.toString()
+                        }else{""},
                         onPayment = onAddPayment,
                         onCheckOut = onCheckOut,
                         modifier = Modifier
@@ -231,6 +201,8 @@ import com.stellar.viewmodels.PaymentViewModel
                         chosenCard = selectedCard
                     )
 
+
+                    // Bottom sheets
 
                     if (showBottomSheet) {
                         PaymentBottomSheet(
@@ -255,9 +227,6 @@ import com.stellar.viewmodels.PaymentViewModel
                             onDismiss = onDismissErrorSheet
                         )
                     }
-
-
-
 
 
                     // Error dialogs
@@ -285,7 +254,38 @@ import com.stellar.viewmodels.PaymentViewModel
 
 
 
+@Composable
+fun ProductsContent(productsState : CartProductsState,  modifier: Modifier = Modifier){
 
+    // Products
+    when (productsState) {
+        CartProductsState.Loading -> {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ){
+                CircularProgressIndicator()
+            }
+        }
+
+        is CartProductsState.Success -> {
+
+            ProductsColumn(
+                list = productsState.products,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+            )
+        }
+
+        is CartProductsState.Error -> {
+            Text(text = "Error loading cart products\n${productsState.error.localizedMessage}")
+        }
+    }
+
+
+}
 
 
 @Composable
@@ -531,7 +531,9 @@ fun ErrorDialog(onDismiss : () -> Unit, text : String, buttonText : String, onBu
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize().padding(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 Text(
                     text = text,

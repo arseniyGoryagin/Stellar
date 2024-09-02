@@ -75,7 +75,7 @@ fun ChooseAddressScreen(navController: NavController, viewModel: AddressViewMode
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(top = padding.calculateTopPadding(), bottom = 0.dp)
                     .padding(horizontal = 16.dp)
                     .verticalScroll(scroll),
                 verticalArrangement = Arrangement.SpaceBetween

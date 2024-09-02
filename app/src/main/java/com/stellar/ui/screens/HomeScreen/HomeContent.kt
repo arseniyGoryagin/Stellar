@@ -1,14 +1,15 @@
 package com.stellar.screens.HomeScreen.HomeContent
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,26 +25,20 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.stellar.R
 import com.stellar.components.columns.ItemColumn
-import com.stellar.data.types.FavoriteProductWithProduct
 import com.stellar.ui.components.screens.ErrorScreen
-import com.stellar.ui.components.screens.LoadingScreen
 import com.stellar.ui.theme.Blue51
 import com.stellar.ui.theme.Grey204
 import com.stellar.ui.theme.PurpleFont
-import com.stellar.viewmodels.HomeViewModel
 import com.stellar.viewmodels.NewArrivalsState
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -65,16 +60,18 @@ fun HomeContent(
 
     when(newArrivalsState){
         is NewArrivalsState.Success -> {
-            Box(modifier = Modifier.pullRefresh(refreshState)) {
                 ItemColumn(
                     modifier = Modifier
-                        .padding(top = 20.dp, start = 16.dp, end = 16.dp),
+                        .fillMaxSize()
+                        .padding(start = 16.dp, end = 16.dp)
+                        .pullRefresh(refreshState),
                     products = newArrivalsState.products,
                     onClick = onProductClick,
                     onFavorite = onProductFavorite,
                     onDeFavorite = onProductDeFavorite,
                     header =  {
                         Column {
+                            Spacer(modifier = Modifier.height(20.dp))
                             Banner()
                             ArrivalsRow(
                                 onSeeAll = onSeeAll
@@ -82,7 +79,7 @@ fun HomeContent(
                         }
                     }
                 )
-            }
+
         }
         is NewArrivalsState.Error -> {
             ErrorScreen(message = "Error loading products\n${newArrivalsState.e}", onRefresh)

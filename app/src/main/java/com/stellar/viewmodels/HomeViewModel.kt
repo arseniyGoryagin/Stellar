@@ -45,7 +45,6 @@ class HomeViewModel @Inject constructor(private val repository : Repository) : V
 
     init {
         viewModelScope.launch {
-            //updateUserState()
             getNewArrivals()
             getCategories()
         }

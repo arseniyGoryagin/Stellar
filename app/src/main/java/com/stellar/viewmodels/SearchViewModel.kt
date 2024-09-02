@@ -57,9 +57,7 @@ class SearchViewModel@Inject constructor ( private val repository: Repository) :
 
     var latestSearches : Flow<List<String>>? = null
 
-
     var categories : CategoriesState by mutableStateOf(CategoriesState.Loading)
-
 
     var _pager : Pager<Int, FavoriteProductWithProduct>? = null
     var _products : Flow<PagingData<FavoriteProductWithProduct>>? = _pager?.flow?.cachedIn(viewModelScope)

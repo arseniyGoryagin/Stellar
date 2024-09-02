@@ -7,6 +7,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -124,11 +125,12 @@ fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel) {
         homeViewModel.updateNewArrivals()
     }
 
+    val tabs = listOf("Home", "Category")
+
 
     Scaffold(
         topBar = {
             when(val state = userState){
-                UserState.Loading -> { CircularProgressIndicator()}
                 is UserState.Success -> {
                     HomeTopBar(
                         onSearch = onSearch,
@@ -144,13 +146,14 @@ fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel) {
             }
                  },
         content = { innerPadding ->
-                val tabs = listOf("Home", "Category")
-                Column(
 
+
+                Column(
                         modifier = Modifier
-                            .padding(innerPadding)
                             .fillMaxSize()
-                    ){
+                            .padding(top = innerPadding.calculateTopPadding(), bottom = 0.dp)
+                    )
+                    {
                         TabRow(
                             selectedTabIndex = selectedTab,
                             containerColor = Color.White,
@@ -174,6 +177,7 @@ fun HomeScreen(navController: NavController,  homeViewModel: HomeViewModel) {
 
                             }
                         }
+
                         AnimatedContent(targetState = selectedTab) { tabIndex ->
                             when(tabIndex){
                                 0 -> HomeContent(

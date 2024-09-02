@@ -63,7 +63,6 @@ class Repository @Inject constructor(
 
 
     private val notificationsDao = db.notificationDao()
-    //private val productDao = db.productDao()
     private val addressDao = db.addressDao()
     private val cardDao = db.cardDao()
     private val cartProductsDao = db.cartProductsDao()
@@ -82,6 +81,8 @@ class Repository @Inject constructor(
         _userState.value = UserState.Success(userData)
     }
 
+
+    // TODO maybe simplify
     suspend fun updateUserState(){
         try {
             fetchUserData()
@@ -96,11 +97,13 @@ class Repository @Inject constructor(
                     }
                     catch (e : retrofit2.HttpException){
                         clearToken()
+                        clearAllUserData()
                     }
                     catch (e : Exception){
                     }
                 }
             }
+            clearAllUserData()
             _userState.value = UserState.Error(e)
         }
         catch (e : NoTokenException){
@@ -108,7 +111,7 @@ class Repository @Inject constructor(
 
         }
         catch (e : Exception){
-            println("Exccpetion in ser")
+            clearAllUserData()
             _userState.value = UserState.Error(e)
         }
     }
@@ -289,26 +292,10 @@ class Repository @Inject constructor(
     }
 
 
-    /*
-                    withContext(Dispatchers.IO) {
-                        try {
-                            val product = getProduct(favoriteProduct.productID)
-                        }
-                        val product = getProduct(favoriteProduct.productID)
-                        FavoriteProductWithProduct(
-                            product = product,
-                            favorite = favoriteProductsDao.isFavoriteProduct(product.id) == 1
-                        )
-
-                    }*/
-
-
-
-
 
     // Searhces
     suspend fun getPopularSearches() : List<PopularProduct>{
-        val products = platziApi.getProducts("", limit = 1)
+        val products = platziApi.getProducts("", limit = 5)
         println(products)
         return toPopularProducts((products.take(4)).map {
             Product.toProduct(it)
@@ -459,29 +446,7 @@ class Repository @Inject constructor(
         }
     }
 
-    /*
-    suspend fun makeOrderFromCart() {
 
-        val cartProducts = getCartProducts()
-
-        for (cartProduct in cartProducts){
-
-        }
-
-
-        when(cartProductsState){
-            is CartProductsState.Error -> TODO()
-            CartProductsState.Loading -> TODO()
-            is CartProductsState.Success -> {
-
-                for (product in cartProductsState.products){
-                    val totalPrice = product.product.price * product.cartProduct.qty
-                    repository.addOrder(product.product.id, product.cartProduct.qty, totalPrice)
-                }
-                repository.clearCart()
-            }
-        }
-    }*/
 
 
 }
